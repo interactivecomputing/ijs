@@ -1,5 +1,26 @@
 {
+  "name": "ijs",
+  "version": "0.1.0",
+  "description": "Interactive JavaScript kernel",
+  "keywords": [
+    "interactive",
+    "javascript",
+    "node"
+  ],
+  "author": "Nikhil Kothari",
+  "license": "Apache 2.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/interactivecomputing/ijs"
+  },
   "dependencies": {
     "zmq": "^2.10.0"
-  }
+  },
+  "engines": {
+    "node": "0.10.x"
+  },
+  "files": [
+    "src"
+  ],
+  "main": "src/index.js"
 }
