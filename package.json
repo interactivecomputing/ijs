@@ -14,6 +14,7 @@
     "url": "https://github.com/interactivecomputing/ijs"
   },
   "dependencies": {
+    "node-uuid": "^1.4.2",
     "zmq": "^2.10.0"
   },
   "engines": {

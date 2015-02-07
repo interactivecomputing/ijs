@@ -6,6 +6,9 @@ var fs = require('fs'),
     vm = require('vm'),
     zmq = require('zmq');
 
+var Signer = require('./protocol/signer'),
+    Message = require('./protocol/message');
+
 function createSocketUri(ip, port) {
   return util.format('tcp://%s:%d', ip, port);
 }
@@ -22,29 +25,11 @@ function createSocket(type, ip, port, messageHandler) {
   return socket;
 }
 
-function readMessage(data) {
-  return {
-    header: JSON.parse(data[3]),
-    parentHeader: JSON.parse(data[4]),
-    metadata: JSON.parse(data[5]),
-    content: JSON.parse(data[6])
-  };
-}
-
-function writeMessage(socket, message) {
-  var data = [ '', '<IDS|MSG>', '',
-               JSON.stringify(message.header),
-               JSON.stringify(message.parentHeader),
-               JSON.stringify(message.metadata),
-               JSON.stringify(message.content) ];
-  socket.send(data);
-}
-
-
 var state = {};
 var context = vm.createContext(state);
 
 var config = JSON.parse(fs.readFileSync(process.argv[2], { encoding: 'utf8' }));
+var signer = Signer.create(config.signature_scheme, config.key);
 
 // Create the heartbeat socket - a simple req/rep zmq socket, which echoes
 // what it is sent.
@@ -59,7 +44,7 @@ var shellSocket = createSocket('xrep', config.ip, config.shell_port,
   function() {
     var result = '';
 
-    var message = readMessage(arguments);
+    var message = Message.read(arguments, signer);
     var code = message.content ? message.content.code : '';
 
     if (code && code.length) {
@@ -67,32 +52,13 @@ var shellSocket = createSocket('xrep', config.ip, config.shell_port,
       result = result || '';
     }
 
-    writeMessage(pubSocket, {
-      header: {
-        msg_type: 'pyout',
-        msg_id: 1,
-        session: message.parentHeader.session
-      },
-      parentHeader: message.header,
-      metadata: {},
-      content: {
-        data: {
-          'text/plain': result.toString()
-        }
-      }
+    var outputMessage = Message.create('pyout', message, null, {
+      data: { 'text/plain': result.toString() }
     });
+    outputMessage.write(pubSocket, signer);
 
-    writeMessage(shellSocket, {
-      header: {
-        msg_type: 'execute_reply',
-        msg_id: 1,
-        session: message.parentHeader.session
-      },
-      parentHeader: message.header,
-      metadata: {},
-      content: {
-        execution_count: 1
-      },
+    var replyMessage = Message.create('execute_reply', message, null, {
+      content: { execution_count: 1 },
     });
+    replyMessage.write(shellSocket, signer);
   });
-
