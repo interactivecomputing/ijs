@@ -3,17 +3,30 @@
 
 var uuid = require('node-uuid');
 
-var DELIMITER = '<IDS|MSG>';
+var _messageDelimiter = '<IDS|MSG>';
+var _messageNames = {
+  kernelInfoRequest: 'kernel_info_request',
+  kernelInfoResponse: 'kernel_info_response',
+  shutdownRequest: 'shutdown_request',
+  shutdownResponse: 'shutdown_response',
+  executeRequest: 'execute_request',
+  executeResponse: 'execute_response',
+  status: 'status',
+  displayData: 'display_data',
+  stream: 'stream'
+};
 
-function Message(identities, header, parentHeader, metadata, content) {
-  this.identities = identities;
-  this.header = header;
-  this.parentHeader = parentHeader;
-  this.metadata = metadata;
-  this.content = content;
+function createMessage(identities, header, parentHeader, metadata, content) {
+  return {
+    identities: identities,
+    header: header,
+    parentHeader: parentHeader,
+    metadata: metadata,
+    content: content
+  };
 }
 
-function createMessage(type, parentMessage, metadata, content) {
+function newMessage(type, parentMessage, content, metadata) {
   var header = {
     msg_type: type,
     msg_id: uuid.v4(),
@@ -23,7 +36,37 @@ function createMessage(type, parentMessage, metadata, content) {
 
   metadata = metadata || {};
   content = content || {};
-  return new Message(parentMessage.identities, header, parentMessage.header, metadata, content);
+  return createMessage(parentMessage.identities, header, parentMessage.header,
+                       metadata, content);
+}
+
+function createKernelInfoResponseMessage(parentMessage) {
+  var content = {
+    language: 'javascript',
+    language_version: [1,0],
+    protocol_version: [4,1]
+  };
+  return newMessage(_messageNames.kernelInfoResponse, parentMessage, content);
+}
+
+function createExecuteSuccessResponseMessage(parentMessage, executionCount, metadata) {
+  var content = {
+    status: 'ok',
+    execution_count: executionCount,
+    payload: [],
+    user_variables: {},
+    user_expressions: {}
+  };
+
+  return newMessage(_messageNames.executeResponse, parentMessage, content, metadata);
+}
+
+function createDataMessage(parentMessage, representations) {
+  var content = {
+    data: representations
+  };
+
+  return newMessage(_messageNames.displayData, parentMessage, content);
 }
 
 function readMessage(socketData, signer) {
@@ -38,24 +81,24 @@ function readMessage(socketData, signer) {
     return null;
   }
 
-  return new Message(identities,
-                     JSON.parse(header),
-                     JSON.parse(parentHeader),
-                     JSON.parse(metadata),
-                     JSON.parse(content));
+  return createMessage(identities,
+                       JSON.parse(header),
+                       JSON.parse(parentHeader),
+                       JSON.parse(metadata),
+                       JSON.parse(content));
 }
 
-Message.prototype.write = function(socket, signer) {
-  var header = JSON.stringify(this.header);
-  var parentHeader = JSON.stringify(this.parentHeader);
-  var metadata = JSON.stringify(this.metadata);
-  var content = JSON.stringify(this.content);
+function writeMessage(message, socket, signer) {
+  var header = JSON.stringify(message.header);
+  var parentHeader = JSON.stringify(message.parentHeader);
+  var metadata = JSON.stringify(message.metadata);
+  var content = JSON.stringify(message.content);
 
   var signature = signer.sign([ header, parentHeader, metadata, content ]);
 
   var socketData = [
-    this.identities,
-    DELIMITER,
+    message.identities,
+    '<IDS|MSG>',
     signature,
     header,
     parentHeader,
@@ -66,6 +109,10 @@ Message.prototype.write = function(socket, signer) {
 }
 
 module.exports = {
-  create: createMessage,
-  read: readMessage
+  names: _messageNames,
+  kernelInfoResponse: createKernelInfoResponseMessage,
+  executeSuccessResponse: createExecuteSuccessResponseMessage,
+  data: createDataMessage,
+  read: readMessage,
+  write: writeMessage
 };

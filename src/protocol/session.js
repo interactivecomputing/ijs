@@ -6,14 +6,10 @@ var fs = require('fs'),
     zmq = require('zmq');
 
 var Signer = require('./signer'),
-    Message = require('./message');
+    Message = require('./message'),
+    Handlers = require('./handlers');
 
-var _signer;
-var _heartbeatSocket;
-var _iopubSocket;
-var _shellSocket;
-
-var _evaluator;
+var _session = {};
 
 function createSocket(type, ip, port, messageHandler) {
   var uri = util.format('tcp://%s:%d', ip, port);
@@ -31,36 +27,27 @@ function heartbeatHandler(data) {
   _heartbeatSocket.send(data);
 }
 
-function shellHandler() {
-  var message = Message.read(arguments, _signer);
-  var code = message.content ? message.content.code : '';
+function messageHandler() {
+  var message = Message.read(arguments, _session.signer);
+  var handler = _session.handlers[message.header.msg_type];
 
-  var result = '';
-  if (code && code.length) {
-    result = _evaluator.evaluate(code);
-    result = result || '';
+  if (handler) {
+    handler(message);
   }
-
-  var outputMessage = Message.create('pyout', message, null, {
-    data: { 'text/plain': result.toString() }
-  });
-  outputMessage.write(_iopubSocket, _signer);
-
-  var replyMessage = Message.create('execute_reply', message, null, {
-    content: { execution_count: 1 },
-  });
-  replyMessage.write(_shellSocket, _signer);
 }
 
 function runSession(evaluator, connectionFile) {
-  _evaluator = evaluator;
-
   var config = JSON.parse(fs.readFileSync(connectionFile, { encoding: 'utf8' }));
 
-  _signer = Signer.create(config.signature_scheme, config.key);
-  _heartbeatSocket = createSocket('rep', config.ip, config.hb_port, heartbeatHandler);
-  _iopubSocket = createSocket('pub', config.ip, config.iopub_port);
-  _shellSocket = createSocket('xrep', config.ip, config.shell_port, shellHandler);
+  _session.signer = Signer.create(config.signature_scheme, config.key);
+  _session.io = createSocket('pub', config.ip, config.iopub_port);
+  _session.shell = createSocket('xrep', config.ip, config.shell_port, messageHandler);
+  _session.control = createSocket('xrep', config.ip, config.control_port, messageHandler);
+
+  _session.evaluator = evaluator;
+  _session.handlers = Handlers.create(_session);
+
+  createSocket('rep', config.ip, config.hb_port, heartbeatHandler);
 }
 
 module.exports = {
