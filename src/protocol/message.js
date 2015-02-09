@@ -50,8 +50,8 @@ function createKernelInfoResponseMessage(parentMessage) {
 }
 
 function createExecuteErrorResponseMessage(parentMessage, executionCount, error) {
-  var trace = error.stack.split('\n');
-  trace = trace.splice(1).map(function(s) {
+  var stack = error.stack || '';
+  var trace = stack.split('\n').splice(1).map(function(s) {
     return s.trim().substr(3);
   });
 
@@ -84,6 +84,15 @@ function createDataMessage(parentMessage, representations) {
   };
 
   return newMessage(_messageNames.displayData, parentMessage, content);
+}
+
+function createStreamMessage(parentMessage, streamName, data) {
+  var content = {
+    name: streamName,
+    data: data
+  };
+
+  return newMessage(_messageNames.stream, parentMessage, content);
 }
 
 function createStatusMessage(parentMessage, busy) {
@@ -140,6 +149,7 @@ module.exports = {
   error: createExecuteErrorResponseMessage,
   success: createExecuteSuccessResponseMessage,
   data: createDataMessage,
+  stream: createStreamMessage,
   read: readMessage,
   write: writeMessage
 };

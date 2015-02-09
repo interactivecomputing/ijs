@@ -1,7 +1,8 @@
 // handlers.js
 //
 
-var Message = require('./message');
+var Message = require('./message'),
+    streams = require('./streams');
 
 var _session;
 var _executionCounter = 0;
@@ -21,9 +22,16 @@ function executeHandler(message) {
     return;
   }
 
+  function outputHandler(name, str) {
+    var streamMessage = Message.stream(message, name, str);
+    Message.write(streamMessage, _session.io, _session.signer);
+  }
+
   var busyMessage = Message.status(message, /* busy */ true);
   Message.write(busyMessage, _session.io, _session.signer);
 
+  var stdout = streams.stdout(outputHandler);
+  var stderr = streams.stderr(outputHandler);
   var result = null;
   var error = null;
   try {
@@ -36,6 +44,10 @@ function executeHandler(message) {
   }
   catch(e) {
     error = e;
+  }
+  finally {
+    stdout.restore();
+    stderr.restore();
   }
 
   var replyMessage;

@@ -3,7 +3,9 @@
 
 var vm = require('vm');
 
-var state = {};
+var state = {
+  console: console
+};
 var context = vm.createContext(state);
 
 function evaluate(code, evaluationId) {
