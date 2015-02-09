@@ -69,6 +69,14 @@ function createDataMessage(parentMessage, representations) {
   return newMessage(_messageNames.displayData, parentMessage, content);
 }
 
+function createStatusMessage(parentMessage, busy) {
+  var content = {
+    execution_state: busy ? 'busy' : 'idle'
+  };
+
+  return newMessage(_messageNames.status, parentMessage, content);
+}
+
 function readMessage(socketData, signer) {
   var identities = socketData[0];
   var signature = socketData[2];
@@ -111,6 +119,7 @@ function writeMessage(message, socket, signer) {
 module.exports = {
   names: _messageNames,
   kernelInfoResponse: createKernelInfoResponseMessage,
+  status: createStatusMessage,
   executeSuccessResponse: createExecuteSuccessResponseMessage,
   data: createDataMessage,
   read: readMessage,
