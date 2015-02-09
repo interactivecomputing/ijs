@@ -11,6 +11,7 @@ function kernelInfoHandler(message) {
 }
 
 function shutdownHandler(message) {
+  process.exit(0);
 }
 
 function executeHandler(message) {
@@ -22,12 +23,28 @@ function executeHandler(message) {
   var busyMessage = Message.status(message, /* busy */ true);
   Message.write(busyMessage, _session.io, _session.signer);
 
-  var result = _session.evaluator.evaluate(code) || '';
+  var result = null;
+  var error = null;
+  try {
+    result = _session.evaluator.evaluate(code);
+    if (result === undefined) {
+      result = '';
+    }
+  }
+  catch(e) {
+    error = e;
+  }
 
-  var dataMessage = Message.data(message, { 'text/plain': result.toString() });
-  Message.write(dataMessage, _session.io, _session.signer);
+  var replyMessage;
+  if (!error) {
+    replyMessage = Message.success(message, 1);
 
-  var replyMessage = Message.executeSuccessResponse(message, 1);
+    var dataMessage = Message.data(message, { 'text/plain': result.toString() });
+    Message.write(dataMessage, _session.io, _session.signer);
+  }
+  else {
+    replyMessage = Message.error(message, 1, error);
+  }
   Message.write(replyMessage, _session.shell, _session.signer);
 
   var idleMessage = Message.status(message, /* busy */ false);

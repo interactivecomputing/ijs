@@ -49,6 +49,23 @@ function createKernelInfoResponseMessage(parentMessage) {
   return newMessage(_messageNames.kernelInfoResponse, parentMessage, content);
 }
 
+function createExecuteErrorResponseMessage(parentMessage, executionCount, error) {
+  var trace = error.stack.split('\n');
+  trace = trace.splice(1).map(function(s) {
+    return s.trim().substr(3);
+  });
+
+  var content = {
+    status: 'error',
+    execution_count: executionCount,
+    ename: error.constructor.name,
+    evalue: error.toString(),
+    traceback: trace
+  };
+
+  return newMessage(_messageNames.executeResponse, parentMessage, content);
+}
+
 function createExecuteSuccessResponseMessage(parentMessage, executionCount, metadata) {
   var content = {
     status: 'ok',
@@ -120,7 +137,8 @@ module.exports = {
   names: _messageNames,
   kernelInfoResponse: createKernelInfoResponseMessage,
   status: createStatusMessage,
-  executeSuccessResponse: createExecuteSuccessResponseMessage,
+  error: createExecuteErrorResponseMessage,
+  success: createExecuteSuccessResponseMessage,
   data: createDataMessage,
   read: readMessage,
   write: writeMessage

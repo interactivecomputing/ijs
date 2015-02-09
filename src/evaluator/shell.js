@@ -7,7 +7,7 @@ var state = {};
 var context = vm.createContext(state);
 
 function evaluate(code) {
-  return vm.runInContext(code, context);
+  return vm.runInContext(code, context, 'code');
 }
 
 function createShell() {
