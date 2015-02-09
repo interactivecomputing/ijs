@@ -4,6 +4,7 @@
 var Message = require('./message');
 
 var _session;
+var _executionCounter = 0;
 
 function kernelInfoHandler(message) {
   var infoMessage = Message.kernelInfoResponse(message);
@@ -26,7 +27,9 @@ function executeHandler(message) {
   var result = null;
   var error = null;
   try {
-    result = _session.evaluator.evaluate(code);
+    _executionCounter++;
+
+    result = _session.evaluator.evaluate(code, _executionCounter);
     if (result === undefined) {
       result = '';
     }
@@ -37,13 +40,13 @@ function executeHandler(message) {
 
   var replyMessage;
   if (!error) {
-    replyMessage = Message.success(message, 1);
+    replyMessage = Message.success(message, _executionCounter);
 
     var dataMessage = Message.data(message, { 'text/plain': result.toString() });
     Message.write(dataMessage, _session.io, _session.signer);
   }
   else {
-    replyMessage = Message.error(message, 1, error);
+    replyMessage = Message.error(message, _executionCounter, error);
   }
   Message.write(replyMessage, _session.shell, _session.signer);
 
