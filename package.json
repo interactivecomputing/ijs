@@ -5,7 +5,11 @@
   "keywords": [
     "interactive",
     "javascript",
-    "node"
+    "node",
+    "ipython",
+    "kernel",
+    "notebook",
+    "repl"
   ],
   "author": "Nikhil Kothari",
   "license": "Apache 2.0",
@@ -15,6 +19,7 @@
   },
   "dependencies": {
     "node-uuid": "^1.4.2",
+    "nomnom": "^1.8.1",
     "zmq": "^2.10.0"
   },
   "engines": {
