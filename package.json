@@ -1,7 +1,7 @@
 {
   "name": "ijs",
-  "version": "0.1.0",
-  "description": "Interactive JavaScript kernel",
+  "version": "0.1.2",
+  "description": "Interactive JavaScript kernel for IPython",
   "keywords": [
     "interactive",
     "javascript",
@@ -11,22 +11,24 @@
     "notebook",
     "repl"
   ],
-  "author": "Nikhil Kothari",
+  "author": {
+    "author": "Nikhil Kothari",
+    "url": "http://www.nikhilk.net"
+  },
   "license": "Apache 2.0",
   "repository": {
     "type": "git",
     "url": "https://github.com/interactivecomputing/ijs"
+  },
+  "engines": {
+    "node": "0.10.x"
   },
   "dependencies": {
     "node-uuid": "^1.4.2",
     "nomnom": "^1.8.1",
     "zmq": "^2.10.0"
   },
-  "engines": {
-    "node": "0.10.x"
-  },
-  "files": [
-    "src"
-  ],
-  "main": "src/index.js"
+  "bin": {
+    "ijs": "bin/ijs.js"
+  }
 }
