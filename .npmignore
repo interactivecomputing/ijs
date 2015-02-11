@@ -1,4 +1,3 @@
-profile
 node_modules/
-ijs.sh
-init.sh
+tools/
+

@@ -3,7 +3,7 @@
 mkdir -p /tmp/notebooks
 mkdir -p /tmp/static
 
-BASEDIR=$(cd "$(dirname "$0")"; pwd)
+BASEDIR=$(cd "$(dirname "$0")/.."; pwd)
 
 ipython notebook \
   --KernelManager.kernel_cmd="['node', '$BASEDIR/src/index.js', '{connection_file}']" \
