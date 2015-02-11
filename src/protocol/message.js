@@ -105,7 +105,7 @@ function createStatusMessage(parentMessage, busy) {
 
 function readMessage(socketData, signer) {
   var identities = socketData[0];
-  var signature = socketData[2];
+  var signature = socketData[2].toString();
   var header = socketData[3];
   var parentHeader = socketData[4];
   var metadata = socketData[5];

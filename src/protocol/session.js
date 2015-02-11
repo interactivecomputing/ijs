@@ -29,8 +29,11 @@ function heartbeatHandler(data) {
 
 function messageHandler() {
   var message = Message.read(arguments, _session.signer);
-  var handler = _session.handlers[message.header.msg_type];
+  if (!message) {
+    return;
+  }
 
+  var handler = _session.handlers[message.header.msg_type];
   if (handler) {
     handler(message);
   }

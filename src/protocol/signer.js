@@ -16,6 +16,9 @@ function createSigner(signatureScheme, signatureKey) {
   if (signatureKey) {
     // Create a SHA256-based signer that generates and validates signatures
     signatureScheme = signatureScheme || 'sha256';
+    if (signatureScheme.indexOf('hmac-') === 0) {
+      signatureScheme = signatureScheme.substr(5);
+    }
     return {
       sign: function(values) {
         return computeSignature(values, signatureScheme, signatureKey);
