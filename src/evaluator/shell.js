@@ -3,16 +3,18 @@
 
 var vm = require('vm');
 
-var state = {
+var _config;
+var _state = {
   console: console
 };
-var context = vm.createContext(state);
+var _context = vm.createContext(_state);
 
 function evaluate(code, evaluationId) {
-  return vm.runInContext(code, context, 'code');
+  return vm.runInContext(code, _context, 'code');
 }
 
-function createShell() {
+function createShell(config) {
+  _config = config;
   return {
     evaluate: evaluate
   };

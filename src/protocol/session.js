@@ -1,8 +1,7 @@
 // session.js
 //
 
-var fs = require('fs'),
-    util = require('util'),
+var util = require('util'),
     zmq = require('zmq');
 
 var Signer = require('./signer'),
@@ -39,9 +38,7 @@ function messageHandler() {
   }
 }
 
-function runSession(evaluator, connectionFile) {
-  var config = JSON.parse(fs.readFileSync(connectionFile, { encoding: 'utf8' }));
-
+function runSession(evaluator, config) {
   _session.signer = Signer.create(config.signature_scheme, config.key);
   _session.io = createSocket('pub', config.ip, config.iopub_port);
   _session.shell = createSocket('xrep', config.ip, config.shell_port, messageHandler);
