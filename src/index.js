@@ -2,18 +2,18 @@
 //
 
 var fs = require('fs'),
-    parser = require('nomnom');
+    nomnom = require('nomnom');
 
 var Session = require('./protocol/session'),
     Shell = require('./evaluator/shell');
 
 function main() {
+  var parser = nomnom();
   parser.script('ijs')
         .nocolors()
         .printer(function(s, code) {
           console.log(s);
           if (code) {
-            console.log(parser.getUsage());
             process.exit(code);
           }
         })
@@ -35,7 +35,7 @@ function main() {
           help: 'path that will contain installed node modules',
           callback: function(modulesPath) {
             if (!fs.existsSync(modulesPath) || !fs.statSync(modulesPath).isDirectory()) {
-              return 'expected an existing directory for modules path';
+              return 'expected an existing directory for the modules option';
             }
             return null;
           }
