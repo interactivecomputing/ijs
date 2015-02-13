@@ -17,7 +17,7 @@ function shutdownHandler(message) {
 }
 
 function executeHandler(message) {
-  var code = message.content ? message.content.code : '';
+  var code = message.content ? message.content.code.trim() : '';
   if (!code) {
     return;
   }

@@ -21,6 +21,8 @@ var _knownModules = {
   zlib: 'zlib'
 };
 
+var _commandPattern = /^%%?([a-zA-Z0-9\\._]+)(\s+)?([^\n]*)?(\n)?(.*)?$/;
+
 var _config;
 var _loadedModules = {};
 
@@ -34,9 +36,7 @@ function shellRequire(name) {
     module = require(name);
   }
   else {
-    // TODO: Support for installing modules
-    // npm.commands.install(_config.modulesPath, [name], function() { });
-    var modulePath = path.join(_config.modulesPath, name);
+    var modulePath = path.join(_config.modulesPath, 'node_modules', name);
     module = require(modulePath);
   }
 
@@ -55,8 +55,38 @@ var _state = {
 };
 var _context = vm.createContext(_state);
 
-function evaluate(code, evaluationId) {
+function evaluate(text, evaluationId) {
+  if (text.charAt(0) === '%') {
+    return evaluateCommand(text, evaluationId);
+  }
+  else {
+    return evaluateCode(text, evaluationId);
+  }
+}
+
+function evaluateCode(code, evaluationId) {
   return vm.runInContext(code, _context, 'code');
+}
+
+function evaluateCommand(text, evaluationId) {
+  var match = _commandPattern.exec(text);
+  if (!match) {
+    // TODO: Custom error type
+    throw new Error('Invalid command syntax.');
+  }
+
+  var commandName = match[1];
+  var commandArgs = match[3].trim().split(' ');
+  var commandData = match[5];
+
+  // TODO: Generalize
+  if (commandName == 'module') {
+    if (commandArgs.length != 1) {
+      throw new Error('Expected module name argument');
+    }
+
+    npm.commands.install(_config.modulesPath, commandArgs, function() { });
+  }
 }
 
 function createShell(config, callback) {
