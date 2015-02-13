@@ -26,6 +26,7 @@
   "dependencies": {
     "node-uuid": "^1.4.2",
     "nomnom": "^1.8.1",
+    "npm": "^2.5.0",
     "zmq": "^2.10.0"
   },
   "bin": {

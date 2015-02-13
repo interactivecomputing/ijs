@@ -23,16 +23,11 @@ if (!fs.existsSync(contentPath)) {
   fs.mkdirSync(contentPath);
 }
 
-var modulesPath = path.join(userPath, 'modules');
-if (!fs.existsSync(modulesPath)) {
-  fs.mkdirSync(modulesPath);
-}
-
 var kernelPath = path.join(__dirname, '..', 'src', 'index.js');
 var kernelArgs = [
   'node',
   kernelPath,
-  '--modules', modulesPath,
+  '--modules', userPath,
   '{connection_file}'
 ].map(function(arg) { return '"' + arg + '"'; }).join(',');
 

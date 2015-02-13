@@ -55,8 +55,9 @@ function main() {
     var connectionConfig = JSON.parse(fs.readFileSync(options.connectionFile,
                                                       { encoding: 'utf8' }));
 
-    var shell = Shell.create(shellConfig);
-    Session.run(shell, connectionConfig);
+    Shell.create(shellConfig, function(shell) {
+      Session.run(shell, connectionConfig);
+    });
   }
 }
 
