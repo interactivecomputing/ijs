@@ -23,52 +23,40 @@ var _knownModules = {
 
 var _commandPattern = /^%%?([a-zA-Z0-9\\._]+)(\s+)?([^\n]*)?(\n)?(.*)?$/;
 
-var _config;
-var _loadedModules = {};
+function createGlobals(shell) {
+  var globals = {
+    Buffer: Buffer,
+    global: globals,
+    console: console,
+    require: function(name) {
+      return shell._require(name);
+    }
+  };
+  return globals;
+}
 
-function shellRequire(name) {
-  var module = _loadedModules[name];
-  if (module) {
-    return module;
-  }
+function Shell(config) {
+  this._config = config;
+  this._state = createGlobals(this);
+  this._context = vm.createContext(this._state);
+  this._requiredModules = {};
+  this._loadedModules = {};
+}
 
-  if (_knownModules[name]) {
-    module = require(name);
-  }
-  else {
-    var modulePath = path.join(_config.modulesPath, 'node_modules', name);
-    module = require(modulePath);
-  }
-
-  if (module) {
-    _loadedModules[name] = module;
-  }
-
-  return module;
-};
-
-var _state = {
-  Buffer: Buffer,
-  console: console,
-  global: _state,
-  require: shellRequire
-};
-var _context = vm.createContext(_state);
-
-function evaluate(text, evaluationId) {
+Shell.prototype.evaluate = function(text, evaluationId) {
   if (text.charAt(0) === '%') {
-    return evaluateCommand(text, evaluationId);
+    return this._evaluateCommand(text, evaluationId);
   }
   else {
-    return evaluateCode(text, evaluationId);
+    return this._evaluateCode(text, evaluationId);
   }
 }
 
-function evaluateCode(code, evaluationId) {
-  return vm.runInContext(code, _context, 'code');
+Shell.prototype._evaluateCode = function(code, evaluationId) {
+  return vm.runInContext(code, this._context, 'code');
 }
 
-function evaluateCommand(text, evaluationId) {
+Shell.prototype._evaluateCommand = function(text, evaluationId) {
   var match = _commandPattern.exec(text);
   if (!match) {
     // TODO: Custom error type
@@ -85,19 +73,38 @@ function evaluateCommand(text, evaluationId) {
       throw new Error('Expected module name argument');
     }
 
-    npm.commands.install(_config.modulesPath, commandArgs, function() { });
+    var shell = this;
+    npm.commands.install(shell._config.modulesPath, commandArgs, function() {
+      shell._loadedModules[commandArgs[0]] = true;
+    });
   }
 }
 
+Shell.prototype._require = function(name) {
+  var module = this._requiredModules[name];
+  if (module) {
+    return module;
+  }
+
+  if (_knownModules[name]) {
+    module = require(name);
+  }
+  else {
+    var modulePath = path.join(this._config.modulesPath, 'node_modules', name);
+    module = require(modulePath);
+  }
+
+  if (module) {
+    this._requiredModules[name] = module;
+  }
+
+  return module;
+};
+
+
 function createShell(config, callback) {
-  _config = config;
-
-  var shell = {
-    evaluate: evaluate
-  };
-
   npm.load(function() {
-    callback(shell);
+    callback(new Shell(config));
   });
 }
 
