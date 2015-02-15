@@ -1,4 +1,4 @@
-// signer.js
+// signers.js
 //
 
 var crypto = require('crypto');

@@ -4,9 +4,9 @@
 var util = require('util'),
     zmq = require('zmq');
 
-var Signer = require('./signer'),
-    Message = require('./message'),
-    Handlers = require('./handlers');
+var signers = require('./signers'),
+    messages = require('./messages'),
+    handlers = require('./handlers');
 
 var _session = {};
 
@@ -27,7 +27,7 @@ function heartbeatHandler(data) {
 }
 
 function messageHandler() {
-  var message = Message.read(arguments, _session.signer);
+  var message = messages.read(arguments, _session.signer);
   if (!message) {
     return;
   }
@@ -39,13 +39,13 @@ function messageHandler() {
 }
 
 function runSession(evaluator, config) {
-  _session.signer = Signer.create(config.signature_scheme, config.key);
+  _session.signer = signers.create(config.signature_scheme, config.key);
   _session.io = createSocket('pub', config.ip, config.iopub_port);
   _session.shell = createSocket('xrep', config.ip, config.shell_port, messageHandler);
   _session.control = createSocket('xrep', config.ip, config.control_port, messageHandler);
 
   _session.evaluator = evaluator;
-  _session.handlers = Handlers.create(_session);
+  _session.handlers = handlers.create(_session);
 
   createSocket('rep', config.ip, config.hb_port, heartbeatHandler);
 }

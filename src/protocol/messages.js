@@ -1,4 +1,4 @@
-// message.js
+// messages.js
 //
 
 var uuid = require('node-uuid');
