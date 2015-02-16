@@ -21,10 +21,9 @@ function executeHandler(message) {
     return;
   }
 
-  var currentEvaluation = null;
-
+  var complete = false;
   function outputHandler(name, str) {
-    if (!currentEvaluation.complete) {
+    if (!complete) {
       var streamMessage = messages.stream(message, name, str);
       messages.write(streamMessage, _session.io, _session.signer);
     }
@@ -33,32 +32,29 @@ function executeHandler(message) {
   var busyMessage = messages.status(message, /* busy */ true);
   messages.write(busyMessage, _session.io, _session.signer);
 
-  var result = null;
-  var error = null;
-  try {
-    currentEvaluation = evaluation.create(_session.evaluator, outputHandler);
-    result = currentEvaluation.start(text);
-  }
-  catch(e) {
-    error = e;
-  }
-  finally {
-    if (currentEvaluation) {
-      currentEvaluation.end(result, error);
+  var currentEvaluation = evaluation.create(_session.evaluator, outputHandler);
+  var result = currentEvaluation.execute(text);
+
+  result.then(function(value) {
+    if ((value !== undefined) && (value !== null)) {
+      value = value.toString();
+
+      var dataMessage = messages.data(message, { 'text/plain': value });
+      messages.write(dataMessage, _session.io, _session.signer);
     }
-  }
 
-  if (result !== undefined) {
-    var dataMessage = messages.data(message, { 'text/plain': result.toString() });
-    messages.write(dataMessage, _session.io, _session.signer);
-  }
-
-  var replyMessage = error ? messages.error(message, this._counter, error) :
-                             messages.success(message, this._counter);
-  messages.write(replyMessage, _session.shell, _session.signer);
-
-  var idleMessage = messages.status(message, /* busy */ false);
-  messages.write(idleMessage, _session.io, _session.signer);
+    var replyMessage = messages.success(message, currentEvaluation.counter);
+    messages.write(replyMessage, _session.shell, _session.signer);
+  })
+  .fail(function(error) {
+    var replyMessage = messages.error(message, currentEvaluation.counter, error);
+    messages.write(replyMessage, _session.shell, _session.signer);
+  })
+  .fin(function() {
+    var idleMessage = messages.status(message, /* busy */ false);
+    messages.write(idleMessage, _session.io, _session.signer);
+  })
+  .done();
 }
 
 function createHandlers(session) {

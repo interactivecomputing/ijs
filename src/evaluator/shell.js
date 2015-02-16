@@ -5,7 +5,10 @@ var npm = require('npm'),
     path = require('path'),
     vm = require('vm');
 
+var Q = require('q');
+
 var _knownModules = {
+  async: 'async',
   crypto: 'crypto',
   events: 'events',
   fs: 'fs',
@@ -30,6 +33,12 @@ function createGlobals(shell) {
     console: console,
     require: function(name) {
       return shell._require(name);
+    },
+    runAsync: function(fn) {
+      var deferred = Q.defer();
+      fn(deferred);
+
+      return deferred.promise;
     }
   };
   return globals;
@@ -53,7 +62,8 @@ Shell.prototype.evaluate = function(text, evaluationId) {
 }
 
 Shell.prototype._evaluateCode = function(code, evaluationId) {
-  return vm.runInContext(code, this._context, 'code');
+  return vm.runInContext(code, this._context,
+                         { filename: 'code', displayErrors: false });
 }
 
 Shell.prototype._evaluateCommand = function(text, evaluationId) {
@@ -74,10 +84,21 @@ Shell.prototype._evaluateCommand = function(text, evaluationId) {
     }
 
     var shell = this;
-    npm.commands.install(shell._config.modulesPath, commandArgs, function() {
-      shell._loadedModules[commandArgs[0]] = true;
+    var deferred = Q.defer();
+
+    npm.commands.install(shell._config.modulesPath, commandArgs, function(error) {
+      if (error) {
+        deferred.reject(error);
+      }
+      else {
+        shell._loadedModules[commandArgs[0]] = true;
+        deferred.resolve();
+      }
     });
+    return deferred.promise;
   }
+
+  throw new Error('Unknown command');
 }
 
 Shell.prototype._require = function(name) {
