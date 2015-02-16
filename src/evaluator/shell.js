@@ -3,6 +3,7 @@
 
 var npm = require('npm'),
     path = require('path'),
+    util = require('util'),
     vm = require('vm');
 
 var Q = require('q');
@@ -42,6 +43,13 @@ function createGlobals(shell) {
     }
   };
   return globals;
+}
+
+function createError() {
+  var e = new Error(util.format.apply(null, arguments));
+  e.trace = false;
+
+  return e;
 }
 
 function Shell(config) {
@@ -87,18 +95,18 @@ Shell.prototype._evaluateCode = function(code, evaluationId) {
 Shell.prototype._evaluateCommand = function(text, evaluationId) {
   var match = _commandPattern.exec(text);
   if (!match) {
-    // TODO: Custom error type
-    throw new Error('Invalid command syntax.');
+    throw createError('Invalid command syntax.');
   }
 
-  var commandName = match[1];
-  var commandArgs = match[3].trim().split(' ');
-  var commandData = match[5];
+  var commandName = match[1] || '';
+  var commandArgs = match[3] || '';
+  var commandData = match[5] || '';
 
   // TODO: Generalize
   if (commandName == 'module') {
-    if (commandArgs.length != 1) {
-      throw new Error('Expected module name argument');
+    commandArgs = commandArgs.trim().split(' ');
+    if ((commandArgs.length != 1) || !commandArgs[0].length) {
+      throw createError('Expected module name argument.');
     }
 
     var shell = this;
@@ -116,7 +124,7 @@ Shell.prototype._evaluateCommand = function(text, evaluationId) {
     return deferred.promise;
   }
 
-  throw new Error('Unknown command');
+  throw createError('Unknown command "%s"', commandName);
 }
 
 Shell.prototype._require = function(name) {
