@@ -23,9 +23,10 @@ if (!fs.existsSync(contentPath)) {
   fs.mkdirSync(contentPath);
 }
 
+var executable = process.argv[3] == 'debug' ? 'node-debug' : 'node';
 var kernelPath = path.join(__dirname, '..', 'src', 'index.js');
 var kernelArgs = [
-  'node',
+  executable,
   kernelPath,
   '--modules', userPath,
   '{connection_file}'
