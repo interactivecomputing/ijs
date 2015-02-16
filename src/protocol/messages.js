@@ -49,18 +49,13 @@ function createKernelInfoResponseMessage(parentMessage) {
   return newMessage(_messageNames.kernelInfoResponse, parentMessage, content);
 }
 
-function createExecuteErrorResponseMessage(parentMessage, executionCount, error) {
-  var stack = error.stack || '';
-  var trace = stack.split('\n').splice(1).map(function(s) {
-    return s.trim().substr(3);
-  });
-
+function createExecuteErrorResponseMessage(parentMessage, executionCount, error, traceback) {
   var content = {
     status: 'error',
     execution_count: executionCount,
     ename: error.constructor.name,
     evalue: error.toString(),
-    traceback: trace
+    traceback: traceback
   };
 
   return newMessage(_messageNames.executeResponse, parentMessage, content);

@@ -52,6 +52,20 @@ function Shell(config) {
   this._loadedModules = {};
 }
 
+Shell.prototype.createTrace = function(error) {
+  var lines = (error.stack || '').split('\n');
+
+  var trace = [];
+  for (var i = 0; i < lines.length; i++) {
+    if (lines[i].indexOf('Shell.') > 0) {
+      break;
+    }
+    trace.push(lines[i]);
+  }
+
+  return trace;
+}
+
 Shell.prototype.evaluate = function(text, evaluationId) {
   if (text.charAt(0) === '%') {
     return this._evaluateCommand(text, evaluationId);
@@ -62,8 +76,12 @@ Shell.prototype.evaluate = function(text, evaluationId) {
 }
 
 Shell.prototype._evaluateCode = function(code, evaluationId) {
-  return vm.runInContext(code, this._context,
-                         { filename: 'code', displayErrors: false });
+  var options = { filename: 'code', displayErrors: false };
+  options.toString = function() {
+    return 'code[' + evaluationId + ']';
+  };
+
+  return vm.runInContext(code, this._context, options);
 }
 
 Shell.prototype._evaluateCommand = function(text, evaluationId) {

@@ -47,7 +47,12 @@ function executeHandler(message) {
     messages.write(replyMessage, _session.shell, _session.signer);
   })
   .fail(function(error) {
-    var replyMessage = messages.error(message, currentEvaluation.counter, error);
+    var trace = _session.evaluator.createTrace(error);
+    var traceMessage = messages.stream(message, 'stderr', trace.join('\n'));
+    messages.write(traceMessage, _session.io, _session.signer);
+
+    var traceback = trace.splice(1).map(function(s) { return s.trim().substr(3); });
+    var replyMessage = messages.error(message, currentEvaluation.counter, error, traceback);
     messages.write(replyMessage, _session.shell, _session.signer);
   })
   .fin(function() {
