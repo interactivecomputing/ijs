@@ -4,9 +4,10 @@
 var npm = require('npm'),
     path = require('path'),
     util = require('util'),
-    vm = require('vm');
+    vm = require('vm'),
+    Q = require('q');
 
-var Q = require('q');
+var commands = require('./commands');
 
 var _knownModules = {
   async: 'async',
@@ -25,12 +26,9 @@ var _knownModules = {
   zlib: 'zlib'
 };
 
-var _commandPattern = /^%%?([a-zA-Z0-9\\._]+)(\s+)?([^\n]*)?(\n)?(.*)?$/;
-
 function createGlobals(shell) {
   var globals = {
     Buffer: Buffer,
-    global: globals,
     console: console,
     require: function(name) {
       return shell._require(name);
@@ -42,6 +40,9 @@ function createGlobals(shell) {
       return deferred.promise;
     }
   };
+
+  globals.global = globals;
+
   return globals;
 }
 
@@ -93,38 +94,33 @@ Shell.prototype._evaluateCode = function(code, evaluationId) {
 }
 
 Shell.prototype._evaluateCommand = function(text, evaluationId) {
-  var match = _commandPattern.exec(text);
-  if (!match) {
+  var command = commands.parse(text);
+  if (!command) {
     throw createError('Invalid command syntax.');
   }
 
-  var commandName = match[1] || '';
-  var commandArgs = match[3] || '';
-  var commandData = match[5] || '';
-
   // TODO: Generalize
-  if (commandName == 'module') {
-    commandArgs = commandArgs.trim().split(' ');
-    if ((commandArgs.length != 1) || !commandArgs[0].length) {
-      throw createError('Expected module name argument.');
+  if (command.name == 'module') {
+    if (command.args.length != 1) {
+      throw createError('Expected a single module name argument.');
     }
 
     var shell = this;
     var deferred = Q.defer();
 
-    npm.commands.install(shell._config.modulesPath, commandArgs, function(error) {
+    npm.commands.install(shell._config.modulesPath, command.args, function(error) {
       if (error) {
         deferred.reject(error);
       }
       else {
-        shell._loadedModules[commandArgs[0]] = true;
+        shell._loadedModules[command.args[0]] = true;
         deferred.resolve();
       }
     });
     return deferred.promise;
   }
 
-  throw createError('Unknown command "%s"', commandName);
+  throw createError('Unknown command "%s"', command.name);
 }
 
 Shell.prototype._require = function(name) {
@@ -150,7 +146,8 @@ Shell.prototype._require = function(name) {
 
 
 function createShell(config, callback) {
-  npm.load(function() {
+  var npmOptions = { prefix: config.modulesPath, loglevel: 'silent', spin: false, color: false };
+  npm.load(npmOptions, function() {
     callback(new Shell(config));
   });
 }
