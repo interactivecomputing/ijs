@@ -2,7 +2,28 @@
 //
 
 var npm = require('npm'),
+    path = require('path'),
     q = require('q');
+
+var error = require('./error');
+
+var _knownModules = {
+  async: 'async',
+  crypto: 'crypto',
+  events: 'events',
+  fs: 'fs',
+  http: 'http',
+  https: 'https',
+  net: 'net',
+  os: 'os',
+  path: 'path',
+  stream: 'stream',
+  querystring: 'querystring',
+  url: 'url',
+  util: 'util',
+  zlib: 'zlib'
+};
+
 
 function moduleCommand(shell, args, data, evaluationId) {
   var deferred = q.defer();
@@ -29,6 +50,7 @@ moduleCommand.options = function(parser) {
     });
 }
 
+
 function modulesCommand(shell, args, data, evaluationId) {
   var names = [];
   for (var n in shell.installedModules) {
@@ -42,9 +64,53 @@ modulesCommand.options = function(parser) {
 }
 
 
-function initialize(shell) {
+function customRequire(shell, name) {
+  var module = shell.requiredModules[name];
+  if (module) {
+    return module;
+  }
+
+  if (_knownModules[name]) {
+    module = require(name);
+  }
+  else if (shell.installedModules[name]) {
+    var modulePath = path.join(shell.config.modulesPath, 'node_modules', name);
+    module = require(modulePath);
+  }
+
+  if (module) {
+    shell.requiredModules[name] = module;
+  }
+  else {
+    throw error.create('Unknown module "%s". Make sure it has been installed via %module first.',
+                       name);
+  }
+
+  return module;
+};
+
+
+function initialize(shell, callback) {
+  shell.requiredModules = {};
+  shell.installedModules = {};
+
+  shell.require = function(name) {
+    return customRequire(shell, name);
+  };
+
   shell.registerCommand('module', moduleCommand);
   shell.registerCommand('modules', modulesCommand);
+
+  var npmOptions = {
+    prefix: shell.config.modulesPath,
+    loglevel: 'silent',
+    spin: false,
+    color: false,
+    unicode: false
+  };
+  npm.load(npmOptions, function() {
+    callback();
+  });
 }
 
 module.exports = {
