@@ -3,11 +3,12 @@
 
 var npm = require('npm'),
     path = require('path'),
-    util = require('util'),
     vm = require('vm'),
-    Q = require('q');
+    q = require('q');
 
-var commands = require('./commands');
+var commands = require('./commands'),
+    error = require('./error'),
+    modules = require('./modules');
 
 var _knownModules = {
   async: 'async',
@@ -34,7 +35,7 @@ function createGlobals(shell) {
       return shell._require(name);
     },
     runAsync: function(fn) {
-      var deferred = Q.defer();
+      var deferred = q.defer();
       fn(deferred);
 
       return deferred.promise;
@@ -46,19 +47,17 @@ function createGlobals(shell) {
   return globals;
 }
 
-function createError() {
-  var e = new Error(util.format.apply(null, arguments));
-  e.trace = false;
-
-  return e;
-}
-
 function Shell(config) {
-  this._config = config;
+  this.config = config;
+  this.requiredModules = {};
+  this.installedModules = {};
+
+  this._commands = {};
+
   this._state = createGlobals(this);
   this._context = vm.createContext(this._state);
-  this._requiredModules = {};
-  this._loadedModules = {};
+
+  modules.initialize(this);
 }
 
 Shell.prototype.createTrace = function(error) {
@@ -94,37 +93,20 @@ Shell.prototype._evaluateCode = function(code, evaluationId) {
 }
 
 Shell.prototype._evaluateCommand = function(text, evaluationId) {
-  var command = commands.parse(text);
-  if (!command) {
-    throw createError('Invalid command syntax.');
+  var commandInfo = commands.parse(text, this._commands);
+  if (commandInfo) {
+    return commandInfo.command(this, commandInfo.args, commandInfo.data, evaluationId);
   }
 
-  // TODO: Generalize
-  if (command.name == 'module') {
-    if (command.args.length != 1) {
-      throw createError('Expected a single module name argument.');
-    }
+  return undefined;
+}
 
-    var shell = this;
-    var deferred = Q.defer();
-
-    npm.commands.install(shell._config.modulesPath, command.args, function(error) {
-      if (error) {
-        deferred.reject(error);
-      }
-      else {
-        shell._loadedModules[command.args[0]] = true;
-        deferred.resolve();
-      }
-    });
-    return deferred.promise;
-  }
-
-  throw createError('Unknown command "%s"', command.name);
+Shell.prototype.registerCommand = function(name, command) {
+  this._commands[name] = command;
 }
 
 Shell.prototype._require = function(name) {
-  var module = this._requiredModules[name];
+  var module = this.requiredModules[name];
   if (module) {
     return module;
   }
@@ -133,12 +115,12 @@ Shell.prototype._require = function(name) {
     module = require(name);
   }
   else {
-    var modulePath = path.join(this._config.modulesPath, 'node_modules', name);
+    var modulePath = path.join(this.config.modulesPath, 'node_modules', name);
     module = require(modulePath);
   }
 
   if (module) {
-    this._requiredModules[name] = module;
+    this.requiredModules[name] = module;
   }
 
   return module;
@@ -146,7 +128,13 @@ Shell.prototype._require = function(name) {
 
 
 function createShell(config, callback) {
-  var npmOptions = { prefix: config.modulesPath, loglevel: 'silent', spin: false, color: false };
+  var npmOptions = {
+    prefix: config.modulesPath,
+    loglevel: 'silent',
+    spin: false,
+    color: false,
+    unicode: false
+  };
   npm.load(npmOptions, function() {
     callback(new Shell(config));
   });
