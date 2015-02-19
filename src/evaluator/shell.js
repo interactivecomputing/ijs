@@ -7,7 +7,6 @@ var npm = require('npm'),
     q = require('q');
 
 var commands = require('./commands'),
-    error = require('./error'),
     modules = require('./modules');
 
 var _knownModules = {

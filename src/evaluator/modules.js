@@ -7,24 +7,26 @@ var npm = require('npm'),
 function moduleCommand(shell, args, data, evaluationId) {
   var deferred = q.defer();
 
-  var names = [args[0]];
-  npm.commands.install(shell.config.modulesPath, names, function(error) {
+
+  npm.commands.install(shell.config.modulesPath, [ args.name ], function(error) {
     if (error) {
       deferred.reject(error);
     }
     else {
-      shell.installedModules[args[0]] = true;
+      shell.installedModules[args.name] = true;
       deferred.resolve();
     }
   });
   return deferred.promise;
 }
 moduleCommand.options = function(parser) {
-  return parser.option('name', {
-    position: 0,
-    required: true,
-    help: 'name of the module to install'
-  });
+  return parser
+    .help('Installs the specified module and makes it available for use')
+    .option('name', {
+      position: 0,
+      required: true,
+      help: 'the name of the module to install'
+    });
 }
 
 function modulesCommand(shell, args, data, evaluationId) {
@@ -33,10 +35,10 @@ function modulesCommand(shell, args, data, evaluationId) {
     names.push(n);
   }
 
-  console.log(names);
+  console.log(names.join('\n'));
 }
-moduleCommand.options = function(parser) {
-  return parser;
+modulesCommand.options = function(parser) {
+  return parser.help('Lists the set of installed modules.');
 }
 
 
