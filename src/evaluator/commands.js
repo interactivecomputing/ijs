@@ -1,53 +1,58 @@
 // commands.js
 //
 
-var nomnom = require('nomnom');
-var error = require('./error');
+function htmlCommand(shell, args, data, evaluationId) {
+  return {
+    toHTML: function() {
+      return data;
+    }
+  };
+}
+htmlCommand.options = function(parser) {
+  return parser.help('Creates and renders HTML markup.');
+}
 
-var _commandPattern = /^%%?([a-zA-Z0-9\\._]+)(\s+)?([^\n]*)?(\n)?(.*)?$/;
 
-function parseCommand(text, commands) {
-  var match = _commandPattern.exec(text);
-  if (!match) {
-    throw error.create('Invalid command syntax.');
-  }
-
-  var name = match[1];
-  var command = commands[name];
-  if (!command) {
-    throw error.create('Unknown command named "%s".', name);
-  }
-
-  var args = match[3] || '';
-  args = args.trim();
-  if (args.length) {
-    args = args.split(' ');
-  }
-  else {
-    args = [];
-  }
-
-  var parser =
-    nomnom().script(name).nocolors().printer(function(s, code) {
-      if (code) {
-        throw error.create(s);
-      }
-
-      console.log(s);
+function textCommand(shell, args, data, evaluationId) {
+  shell.context[args.name] = data;
+}
+textCommand.options = function(parser) {
+  return parser
+    .help('Creates a string variable from the specified text.')
+    .option('name', {
+      abbr: 'n',
+      full: 'name',
+      metavar: 'variable',
+      type: 'string',
+      required: true,
+      help: 'the variable that will be assigned'
     });
-  args = command.options(parser).parse(args);
+}
 
-  if (args) {
-    return {
-      command: command,
-      args: args,
-      data: match[5] || ''
-    };
-  }
 
-  return null;
+function jsonCommand(shell, args, data, evaluationId) {
+  shell.context[args.name] = JSON.parse(data);
+}
+jsonCommand.options = function(parser) {
+  return parser
+    .help('Creates an object from the specified JSON text.')
+    .option('name', {
+      abbr: 'n',
+      full: 'name',
+      metavar: 'variable',
+      type: 'string',
+      required: true,
+      help: 'the variable that will be assigned'
+    });
+}
+
+
+function initialize(shell) {
+  shell.registerCommand('html', htmlCommand);
+  shell.registerCommand('text', textCommand);
+  shell.registerCommand('json', jsonCommand);
 }
 
 module.exports = {
-  parse: parseCommand
+  initialize: initialize
 };

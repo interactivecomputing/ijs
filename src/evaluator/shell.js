@@ -1,10 +1,12 @@
 // shell.js
 //
 
-var vm = require('vm'),
-    q = require('q');
+var nomnom = require('nomnom'),
+    q = require('q'),
+    vm = require('vm');
 
 var commands = require('./commands'),
+    error = require('./error'),
     modules = require('./modules');
 
 function createGlobals(shell) {
@@ -63,12 +65,62 @@ Shell.prototype._evaluateCode = function(code, evaluationId) {
 }
 
 Shell.prototype._evaluateCommand = function(text, evaluationId) {
-  var commandInfo = commands.parse(text, this.commands);
-  if (commandInfo) {
-    return commandInfo.command(this, commandInfo.args, commandInfo.data, evaluationId);
+  var commandInfo = this._parseCommand(text);
+  if (!commandInfo) {
+    return undefined;
   }
 
-  return undefined;
+  return commandInfo.command(this, commandInfo.args, commandInfo.data, evaluationId);
+}
+
+Shell.prototype._parseCommand = function(text) {
+  var data = '';
+  var newLine = text.indexOf('\n');
+  if (newLine > 0) {
+    data = text.substr(newLine + 1);
+    text = text.substr(0, newLine);
+  }
+
+  var commandPattern = /^%%?([a-zA-Z0-9\\._]+)(\s+)?(.*)?$/;
+  var match = commandPattern.exec(text);
+  if (!match) {
+    throw error.create('Invalid command syntax.');
+  }
+
+  var name = match[1];
+  var command = this.commands[name];
+  if (!command) {
+    throw error.create('Unknown command named "%s".', name);
+  }
+
+  var args = match[3] || '';
+  args = args.trim();
+  if (args.length) {
+    args = args.split(' ');
+  }
+  else {
+    args = [];
+  }
+
+  var parser =
+    nomnom().script(name).nocolors().printer(function(s, code) {
+      if (code) {
+        throw error.create(s);
+      }
+
+      console.log(s);
+    });
+  args = command.options(parser).parse(args);
+
+  if (args) {
+    return {
+      command: command,
+      args: args,
+      data: data
+    };
+  }
+
+  return null;
 }
 
 Shell.prototype.registerCommand = function(name, command) {
@@ -80,6 +132,8 @@ function createShell(config, callback) {
   var shell = new Shell(config);
 
   modules.initialize(shell, function() {
+    commands.initialize(shell);
+
     var state = createGlobals(shell);
     shell.context = vm.createContext(state);
 

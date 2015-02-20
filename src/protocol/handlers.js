@@ -1,8 +1,9 @@
 // handlers.js
 //
 
-var messages = require('./messages'),
-    evaluation = require('./evaluation');
+var display = require('./display'),
+    evaluation = require('./evaluation'),
+    messages = require('./messages');
 
 var _session;
 
@@ -37,9 +38,8 @@ function executeHandler(message) {
 
   result.then(function(value) {
     if ((value !== undefined) && (value !== null)) {
-      value = value.toString();
-
-      var dataMessage = messages.data(message, { 'text/plain': value });
+      var data = display.data(value);
+      var dataMessage = messages.data(message, data);
       messages.write(dataMessage, _session.io, _session.signer);
     }
 

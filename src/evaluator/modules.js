@@ -28,7 +28,6 @@ var _knownModules = {
 function moduleCommand(shell, args, data, evaluationId) {
   var deferred = q.defer();
 
-
   npm.commands.install(shell.config.modulesPath, [ args.name ], function(error) {
     if (error) {
       deferred.reject(error);
