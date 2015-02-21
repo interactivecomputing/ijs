@@ -7,8 +7,9 @@ var npm = require('npm'),
 
 var error = require('./error');
 
+// List of built-in and custom modules available from the shell
+// without needing to first install.
 var _knownModules = {
-  async: 'async',
   crypto: 'crypto',
   events: 'events',
   fs: 'fs',
@@ -21,7 +22,10 @@ var _knownModules = {
   querystring: 'querystring',
   url: 'url',
   util: 'util',
-  zlib: 'zlib'
+  zlib: 'zlib',
+
+  async: 'async',
+  request: 'request'
 };
 
 
