@@ -79,3 +79,17 @@ $(function() {
     return false;
   }
 });
+
+// JSON display support
+$(function() {
+  IPython.OutputArea.display_order.push('application/json');
+
+  IPython.OutputArea.append_map['application/json'] = function(data, md, element) {
+    var outputElement = this.create_output_subarea(md, 'output_text', 'application/json');
+    outputElement.append($('<pre/>').text(JSON.stringify(data, null, 2)));
+
+    element.append(outputElement);
+
+    return outputElement;
+  }
+});
