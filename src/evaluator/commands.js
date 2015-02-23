@@ -70,12 +70,28 @@ jsonCommand.options = function(parser) {
 }
 
 
+// Implements the %%client command.
+// This command can be used to execute script on the client, as opposed to in the nodejs
+// runtime.
+function clientCommand(shell, args, data, evaluationId) {
+  return {
+    toScript: function() {
+      return data;
+    }
+  };
+}
+clientCommand.options = function(parser) {
+  return parser.help('Creates a script object that is executed in the browser.');
+}
+
+
 // Initialize the shell with tne commands defined above, so they are available for use as
 // %% magics.
 function initialize(shell) {
   shell.registerCommand('html', htmlCommand);
   shell.registerCommand('text', textCommand);
   shell.registerCommand('json', jsonCommand);
+  shell.registerCommand('client', clientCommand);
 }
 
 

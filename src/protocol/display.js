@@ -25,7 +25,7 @@ function createDisplayData(value) {
     return displayData;
   }
 
-  var useStringFallback = true;
+  var useFallbacks = true;
 
   if (typeof value.toHTML == 'function') {
     displayData['text/html'] = value.toHTML();
@@ -33,20 +33,20 @@ function createDisplayData(value) {
   }
 
   if (typeof value.toScript == 'function') {
-    displayData['text/javascript'] = value.toScript();
-    useStringFallback = false;
-  }
-
-  if ((value.constructor == Object) ||
-      (value.constructor == Array)) {
-    displayData['application/json'] = value;
+    displayData['application/javascript'] = value.toScript();
     useStringFallback = false;
   }
 
   // TODO: image, binary?
 
-  if (useStringFallback) {
-    displayData['text/plain'] = value.toString();
+  if (useFallbacks) {
+    if ((value.constructor == Object) ||
+        (value.constructor == Array)) {
+      displayData['application/json'] = value;
+    }
+    else {
+      displayData['text/plain'] = value.toString();
+    }
   }
 
   return displayData;
