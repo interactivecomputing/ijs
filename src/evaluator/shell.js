@@ -19,6 +19,8 @@ var nomnom = require('nomnom'),
     q = require('q'),
     vm = require('vm');
 
+var ijsrt = require('ijs.runtime');
+
 var commands = require('./commands'),
     error = require('./error'),
     modules = require('./modules');
@@ -29,12 +31,7 @@ function createGlobals(shell) {
   var globals = {
     Buffer: Buffer,
     console: console,
-    runAsync: function(fn) {
-      var deferred = q.defer();
-      fn(deferred);
-
-      return deferred.promise;
-    }
+    _: ijsrt
   };
 
   globals.global = globals;
@@ -53,6 +50,10 @@ function Shell(config) {
 // Creates traces for errors raised within the shell. It removes the Shell and underlying
 // kernel-specific stack frames to provide a user code-only trace.
 Shell.prototype.createTrace = function(error) {
+  if (error.constructor != Error) {
+    return [ error.toString() ];
+  }
+
   var lines = (error.stack || '').split('\n');
 
   var trace = [];

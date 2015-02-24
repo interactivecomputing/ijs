@@ -36,10 +36,7 @@ var _knownModules = {
   querystring: 'querystring',
   url: 'url',
   util: 'util',
-  zlib: 'zlib',
-
-  async: 'async',
-  request: 'request'
+  zlib: 'zlib'
 };
 
 
