@@ -15,6 +15,8 @@
 // within a notebook.
 //
 
+var util = require('util');
+
 // Generates display data, an object with key/value pairs, where each key is a mime type.
 // Unless the value is null/undefined, a plain text representation is always produced if no other
 // specific representation can be generated.
@@ -29,15 +31,29 @@ function createDisplayData(value) {
 
   if (typeof value.toHTML == 'function') {
     displayData['text/html'] = value.toHTML();
-    useStringFallback = false;
+    useFallbacks = false;
   }
 
   if (typeof value.toScript == 'function') {
     displayData['application/javascript'] = value.toScript();
-    useStringFallback = false;
+    useFallbacks = false;
   }
 
-  // TODO: image, binary?
+  if (typeof value.toImage == 'function') {
+    var buffer = value.toImage();
+    if (buffer) {
+      var data = buffer.toString('base64');
+      var mime = buffer.mime || 'image/png';
+      var text = buffer.text;
+
+      displayData[mime] = data;
+      if (text) {
+        displayData['text/plain'] = text;
+      }
+
+      useFallbacks = false;
+    }
+  }
 
   if (useFallbacks) {
     if ((value.constructor == Object) ||
