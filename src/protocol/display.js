@@ -44,20 +44,18 @@ function createDisplayData(value) {
     if (buffer) {
       var data = buffer.toString('base64');
       var mime = buffer.mime || 'image/png';
-      var text = buffer.text;
 
       displayData[mime] = data;
-      if (text) {
-        displayData['text/plain'] = text;
-      }
-
       useFallbacks = false;
     }
   }
 
   if (typeof value.toText == 'function') {
-    displayData['text/plain'] = value.toText();
-    useFallbacks = false;
+    var text = value.toText();
+    if (text) {
+      displayData['text/plain'] = text;
+      useFallbacks = false;
+    }
   }
 
   if (useFallbacks) {
