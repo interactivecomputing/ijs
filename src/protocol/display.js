@@ -55,6 +55,11 @@ function createDisplayData(value) {
     }
   }
 
+  if (typeof value.toText == 'function') {
+    displayData['text/plain'] = value.toText();
+    useFallbacks = false;
+  }
+
   if (useFallbacks) {
     if ((value.constructor == Object) ||
         (value.constructor == Array)) {
