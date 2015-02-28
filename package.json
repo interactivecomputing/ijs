@@ -1,6 +1,6 @@
 {
   "name": "ijs",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "description": "Interactive JavaScript kernel for IPython",
   "keywords": [
     "interactive",
@@ -24,7 +24,7 @@
     "node": "0.10.x"
   },
   "dependencies": {
-    "ijs.runtime": "^0.1.0",
+    "ijs.runtime": "^0.1.1",
     "node-uuid": "^1.4.2",
     "nomnom": "^1.8.1",
     "npm": "^2.5.0",

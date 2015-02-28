@@ -14,14 +14,13 @@
 // Implements various commands (aka line and cell magics) available within the shell.
 //
 
+var ijsrt = require('ijs.runtime');
+
+
 // Implements the %%html command.
 // This command simply converts the specified text into an object that is rendered as HTML.
 function htmlCommand(shell, args, data, evaluationId) {
-  return {
-    toHTML: function() {
-      return data;
-    }
-  };
+  return ijsrt.data.html(data);
 }
 htmlCommand.options = function(parser) {
   return parser.help('Creates and renders HTML markup.');
