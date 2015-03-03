@@ -32,8 +32,8 @@ var _knownModules = {
   net: 'net',
   os: 'os',
   path: 'path',
-  stream: 'stream',
   querystring: 'querystring',
+  stream: 'stream',
   url: 'url',
   util: 'util',
   zlib: 'zlib'
