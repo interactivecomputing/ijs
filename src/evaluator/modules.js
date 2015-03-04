@@ -46,15 +46,30 @@ var _knownModules = {
 function moduleCommand(shell, args, data, evaluationId) {
   var deferred = q.defer();
 
-  npm.commands.install([ args.name ], function(error) {
-    if (error) {
-      deferred.reject(error);
-    }
-    else {
-      shell.installedModules[args.name] = true;
-      deferred.resolve();
-    }
+  var npmOptions = {
+    // where modules should get installed
+    prefix: shell.config.modulesPath,
+
+    // turn off npm spew, as well as its progress indicator
+    loglevel: 'silent',
+    spin: false,
+
+    // make any other output (the list of installed modules) usable within the shell
+    color: false,
+    unicode: false
+  };
+  npm.load(npmOptions, function() {
+    npm.commands.install([ args.name ], function(error) {
+      if (error) {
+        deferred.reject(error);
+      }
+      else {
+        shell.installedModules[args.name] = true;
+        deferred.resolve();
+      }
+    });
   });
+
   return deferred.promise;
 }
 moduleCommand.options = function(parser) {
@@ -117,8 +132,7 @@ function customRequire(shell, name) {
 // - The required and installed modules are tracked, and an implementation of a shell-scoped
 //   require is created.
 // - The %module and %modules commands are also registered with the shell.
-// - Finally npm is initialized, so it can later be used to install custom modules.
-function initialize(shell, callback) {
+function initialize(shell) {
   shell.requiredModules = {};
   shell.installedModules = {};
 
@@ -128,22 +142,6 @@ function initialize(shell, callback) {
 
   shell.registerCommand('module', moduleCommand);
   shell.registerCommand('modules', modulesCommand);
-
-  var npmOptions = {
-    // where modules should get installed
-    prefix: shell.config.modulesPath,
-
-    // turn off npm spew, as well as its progress indicator
-    loglevel: 'silent',
-    spin: false,
-
-    // make any other output (the list of installed modules) usable within the shell
-    color: false,
-    unicode: false
-  };
-  npm.load(npmOptions, function() {
-    callback();
-  });
 }
 
 

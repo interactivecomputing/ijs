@@ -162,8 +162,10 @@ Shell.prototype.registerCommand = function(name, command) {
 function createShell(config, callback) {
   var shell = new Shell(config);
 
-  modules.initialize(shell, function() {
-    commands.initialize(shell);
+  modules.initialize(shell);
+  commands.initialize(shell);
+
+  process.nextTick(function() {
     callback(shell);
   });
 }
