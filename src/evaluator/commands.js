@@ -69,13 +69,12 @@ jsonCommand.options = function(parser) {
 }
 
 
-// Implements the %%client command.
-// This command can be used to execute script on the client, as opposed to in the nodejs
-// runtime.
-function clientCommand(shell, args, data, evaluationId) {
+// Implements the %%script command.
+// This command can be used to execute script on the client, instead of on the server.
+function scriptCommand(shell, args, data, evaluationId) {
   return ijsrt.data.script(data);
 }
-clientCommand.options = function(parser) {
+scriptCommand.options = function(parser) {
   return parser.help('Creates a script object that is executed in the browser.');
 }
 
@@ -86,7 +85,7 @@ function initialize(shell) {
   shell.registerCommand('html', htmlCommand);
   shell.registerCommand('text', textCommand);
   shell.registerCommand('json', jsonCommand);
-  shell.registerCommand('client', clientCommand);
+  shell.registerCommand('script', scriptCommand);
 }
 
 
