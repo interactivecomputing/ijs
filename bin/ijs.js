@@ -36,12 +36,23 @@ if (!fs.existsSync(contentPath)) {
   fs.mkdirSync(contentPath);
 }
 
+var modulesPath = path.join(userPath, 'lib');
+if (!fs.existsSync(modulesPath)) {
+  fs.mkdirSync(modulesPath);
+}
+
+var extensionsPath = path.join(userPath, 'ext');
+if (!fs.existsSync(extensionsPath)) {
+  fs.mkdirSync(extensionsPath);
+}
+
 var executable = process.argv[3] == 'debug' ? 'node-debug' : 'node';
 var kernelPath = path.join(__dirname, '..', 'src', 'index.js');
 var kernelArgs = [
   executable,
   kernelPath,
-  '--modules', userPath,
+  '--modules', modulesPath,
+  '--extensions', extensionsPath,
   '{connection_file}'
 ].map(function(arg) { return '"' + arg + '"'; }).join(',');
 

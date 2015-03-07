@@ -23,6 +23,7 @@ var ijsrt = require('ijs.runtime');
 
 var commands = require('./commands'),
     error = require('./error'),
+    extensions = require('./extensions'),
     modules = require('./modules');
 
 
@@ -163,6 +164,7 @@ function createShell(config, callback) {
   var shell = new Shell(config);
 
   modules.initialize(shell);
+  extensions.initialize(shell);
   commands.initialize(shell);
 
   process.nextTick(function() {

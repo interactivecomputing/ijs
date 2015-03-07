@@ -55,6 +55,20 @@ function main() {
             return null;
           }
         })
+        .option('extensionsPath', {
+          abbr: 'e',
+          full: 'extensions',
+          metavar: 'path',
+          type: 'string',
+          required: true,
+          help: 'path that will contain installed extensions',
+          callback: function(extensionsPath) {
+            if (!fs.existsSync(extensionsPath) || !fs.statSync(extensionsPath).isDirectory()) {
+              return 'expected an existing directory for the extensions option';
+            }
+            return null;
+          }
+        })
         .option('connectionFile', {
           position: 0,
           required: true,
@@ -64,7 +78,8 @@ function main() {
 
   if (options) {
     var shellConfig = {
-      modulesPath: options.modulesPath
+      modulesPath: options.modulesPath,
+      extensionsPath: options.extensionsPath
     };
 
     var connectionConfig = JSON.parse(fs.readFileSync(options.connectionFile,
