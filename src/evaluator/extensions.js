@@ -45,8 +45,6 @@ function extensionCommand(shell, args, data, evaluationId) {
         deferred.reject(error);
       }
       else {
-        shell.loadedExtensions[name] = true;
-
         var extensionPath = path.join(shell.config.extensionsPath, 'node_modules', moduleName);
         var extension = require(modulePath);
 
@@ -55,6 +53,7 @@ function extensionCommand(shell, args, data, evaluationId) {
             deferred.reject(error);
           }
           else {
+            shell.loadedExtensions[name] = true;
             deferred.resolve(result);
           }
         });
@@ -75,11 +74,26 @@ extensionCommand.options = function(parser) {
 }
 
 
+// Implements the %extensions command, that can be used to list the names of loaded extensions.
+function extensionsCommand(shell, args, data, evaluationId) {
+  var names = [];
+  for (var n in shell.loadedExtensions) {
+    names.push(n);
+  }
+
+  console.log(names.join('\n'));
+}
+extensionsCommand.options = function(parser) {
+  return parser.help('Lists the set of loaded extensions.');
+}
+
+
 // Initializes the shell with extensions related functionality.
 function initialize(shell) {
   shell.loadedExtensions = {};
 
   shell.registerCommand('extension', extensionCommand);
+  shell.registerCommand('extensions', extensionsCommand);
 }
 
 
