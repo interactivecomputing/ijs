@@ -17,14 +17,30 @@ var ternOptions = {
 };
 var ternServer = new tern.Server(ternOptions);
 
-var code = 'fs = require("fs"); y.';
-var query = { type: 'completions', file: 'test', end: code.length };
-var files = [ { type: "full", name: "test", text: code }, { type: "full", name: "t", text: 'y = 123;' } ];
+function run(code, moreCode) {
+  console.log('----');
+  console.log(code);
 
-ternServer.request({ query: query, files: files }, function(error, response) {
-  console.log('error:');
-  console.dir(error);
+  var query = { type: 'completions', file: 'code', end: code.length };
+  var files = [];
 
-  console.log('response:');
-  console.dir(response);
-});
+  files.push({ type: 'full', name: 'code', text: code });
+  if (moreCode) {
+    files.push({ type: 'full', name: 'moreCode', text: moreCode });
+  }
+
+  ternServer.request({ query: query, files: files }, function(error, response) {
+    if (error) {
+      console.log('error:');
+      console.dir(error);
+    }
+    else {
+      console.dir(response);
+    }
+  });
+}
+
+run('fs = require("fs"); fs.');
+run('fs = req');
+run('fs = require("fs"); y.', 'y = 123;');
+run('s', 'str = "aaa";');
