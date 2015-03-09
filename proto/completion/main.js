@@ -1,7 +1,7 @@
 var tern = require('tern');
-var ecma5 = require('./node_modules/tern/defs/ecma5.json');
-var nodePlugin = require('./node_modules/tern/plugin/node.js');
-var requirePlugin = require('./node_modules/tern/plugin/requirejs.js');
+var ecma5 = require('../../node_modules/tern/defs/ecma5.json');
+var nodePlugin = require('../../node_modules/tern/plugin/node.js');
+var requirePlugin = require('../../node_modules/tern/plugin/requirejs.js');
 
 var context = {
   "!name": "repl",
@@ -11,9 +11,8 @@ var context = {
 var ternOptions = {
   defs: [ecma5, context],
   plugins: {
-    node: {}
-  },
-  requirejs: {
+    node: {},
+    requirejs: {}
   }
 };
 var ternServer = new tern.Server(ternOptions);
