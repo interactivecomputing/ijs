@@ -107,6 +107,10 @@ function executeHandler(message) {
   .done();
 }
 
+function completeHandler(message) {
+  console.dir(message);
+}
+
 // Creates the message handlers associated with the kernel session.
 function createHandlers(session) {
   _session = session;
@@ -115,6 +119,7 @@ function createHandlers(session) {
   handlers[messages.names.kernelInfoRequest] = kernelInfoHandler;
   handlers[messages.names.shutdownRequest] = shutdownHandler;
   handlers[messages.names.executeRequest] = executeHandler;
+  handlers[messages.names.completeRequest] = completeHandler;
 
   return handlers;
 }

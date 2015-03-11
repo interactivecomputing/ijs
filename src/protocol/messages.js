@@ -25,6 +25,8 @@ var _messageNames = {
   shutdownResponse: 'shutdown_response',
   executeRequest: 'execute_request',
   executeResponse: 'execute_response',
+  completeRequest: 'complete_request',
+  completeResponse: 'complete_response',
   status: 'status',
   displayData: 'display_data',
   stream: 'stream'
@@ -91,6 +93,19 @@ function createExecuteSuccessResponseMessage(parentMessage, executionCount, meta
   };
 
   return newMessage(_messageNames.executeResponse, parentMessage, content, metadata);
+}
+
+// Create a completions list reply message
+function createCompleteInfoResponseMessage(parentMessage, completions, start, end, info, metadata) {
+  var content = {
+    status: 'ok',
+    matches: completions,
+    cursor_start: start,
+    cursor_end: end,
+    metadata: info
+  };
+
+  return newMessage(_messageNames.completeResponse, parentMessage, content, metadata);
 }
 
 // Creates a display data message for sending results of an execution.
@@ -169,6 +184,7 @@ module.exports = {
   status: createStatusMessage,
   error: createExecuteErrorResponseMessage,
   success: createExecuteSuccessResponseMessage,
+  completions: createCompleteInfoResponseMessage,
   data: createDataMessage,
   stream: createStreamMessage,
   read: readMessage,
