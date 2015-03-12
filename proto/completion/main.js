@@ -27,37 +27,19 @@ function ternCallback(error, response) {
   }
 }
 
-function run(code, moreCode) {
+function run(code) {
   console.log('----');
   console.log(code);
 
   var query = { type: 'completions', file: 'code', end: code.length };
-  var files = [];
+  var file = { type: 'full', name: 'code', text: code };
 
-  files.push({ type: 'full', name: 'code', text: code });
-  if (moreCode) {
-    files.push({ type: 'full', name: 'moreCode', text: moreCode });
-  }
-
-  ternServer.request({ query: query, files: files }, ternCallback);
+  ternServer.request({ query: query, files: [file] }, ternCallback);
 }
 
-//run('fs = require("fs"); fs.');
-//run('fs = req');
-//run('fs = require("fs"); y.', 'y = 123;');
-//run('s', 'str = "aaa";');
-
-function run2(code, moreCode) {
-  console.log('----');
-  console.log(code);
-
-  ternServer.request({files: [{type: 'full', name: 'moreCode', text: moreCode}]}, ternCallback);
-  ternServer.request({files: [{type: 'full', name: 'code', text: code}]}, ternCallback);
-  // ternServer.addFile('moreCode', moreCode);
-  // ternServer.addFile('code', code);
-
-  var query = { type: 'completions', file: 'code', end: code.length };
-  ternServer.request({ query: query }, ternCallback);
-}
-
-run2('greeting().', 'function greeting() { return "Hello"; }');
+run('x.');
+run('fs = require("fs"); fs.');
+run('fs = req');
+run('fs = require("fs"); y = 123; y.');
+run('str = "aaa"; s');
+run('function greeting() { return "Hello"; } greeting().');
