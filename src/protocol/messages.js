@@ -20,13 +20,13 @@ var uuid = require('node-uuid');
 var _messageDelimiter = '<IDS|MSG>';
 var _messageNames = {
   kernelInfoRequest: 'kernel_info_request',
-  kernelInfoResponse: 'kernel_info_response',
+  kernelInfoResponse: 'kernel_info_reply',
   shutdownRequest: 'shutdown_request',
-  shutdownResponse: 'shutdown_response',
+  shutdownResponse: 'shutdown_reply',
   executeRequest: 'execute_request',
-  executeResponse: 'execute_response',
+  executeResponse: 'execute_reply',
   completeRequest: 'complete_request',
-  completeResponse: 'complete_response',
+  completeResponse: 'complete_reply',
   status: 'status',
   displayData: 'display_data',
   stream: 'stream'
@@ -96,13 +96,11 @@ function createExecuteSuccessResponseMessage(parentMessage, executionCount, meta
 }
 
 // Create a completions list reply message
-function createCompleteInfoResponseMessage(parentMessage, completions, start, end, info, metadata) {
+function createCompleteInfoResponseMessage(parentMessage, matchedText, matches, metadata) {
   var content = {
     status: 'ok',
-    matches: completions,
-    cursor_start: start,
-    cursor_end: end,
-    metadata: info
+    matched_text: matchedText,
+    matches: matches
   };
 
   return newMessage(_messageNames.completeResponse, parentMessage, content, metadata);
