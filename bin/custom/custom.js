@@ -106,3 +106,23 @@ $(function() {
     return outputElement;
   }
 });
+
+// Fix completion requests to include cell text!
+$(function() {
+  IPython.Kernel.prototype.complete = function(line, cursor_pos, callback) {
+    var callbacks;
+    if (callback) {
+      callbacks = { shell : { reply : callback } };
+    }
+
+    var cell = IPython.notebook.get_selected_cell();
+    var cm = cell.code_mirror;
+    var content = {
+      cursor_pos : cm.indexFromPos(cm.getCursor()),
+      text : cell.get_text(),
+      line : '',
+      block : ''
+    };
+    return this.send_shell_message('complete_request', content, callbacks);
+  }
+});
