@@ -14,6 +14,7 @@
 // Implements various commands (aka line and cell magics) available within the shell.
 //
 
+var util = require('util');
 var ijsrt = require('ijs.runtime');
 
 
@@ -34,6 +35,9 @@ function textCommand(shell, args, data, evaluationId) {
   // Declare a specific named value (or update an existing declaration) with the data
   // associated with the command.
   shell.state[args.name] = data;
+
+  // Append a variable declaration for the name we just set to a string placeholder.
+  shell.appendCode(util.format('var %s = "";', args.name));
 }
 textCommand.options = function(parser) {
   return parser
@@ -54,6 +58,9 @@ textCommand.options = function(parser) {
 // parsed from JSON text.
 function jsonCommand(shell, args, data, evaluationId) {
   shell.state[args.name] = JSON.parse(data);
+
+  // Append a variable declaration for the name we just set to the same json data.
+  shell.appendCode(util.format('var %s = %s;', args.name, data));
 }
 jsonCommand.options = function(parser) {
   return parser

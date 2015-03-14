@@ -46,6 +46,16 @@ function Shell(config) {
   this.config = config;
   this.commands = {};
   this.state = vm.createContext(createGlobals(this));
+  this.code = '';
+}
+
+// Appends code to the shell's code buffer
+Shell.prototype.appendCode = function(code) {
+  // Append the new code to the code buffer if it didn't look like a re-execution of
+  // previously executed code.
+  if (this.code.indexOf(code) < 0) {
+    this.code += '\n' + code;
+  }
 }
 
 // Creates traces for errors raised within the shell. It removes the Shell and underlying
@@ -82,25 +92,66 @@ Shell.prototype.evaluate = function(text, evaluationId) {
 // any side-effects to that state are preserved. The value resulting from the final expression
 // within the code is used as the result of the evaluation.
 Shell.prototype._evaluateCode = function(code, evaluationId) {
-  // Use the evaluation id to identify this code when it shows up in stack traces.
-  // Turn off automatic display of errors for things like syntax errors.
+  var shell = this;
 
-  var options = { filename: 'code', displayErrors: false };
-  options.toString = function() {
-    return 'code[' + evaluationId + ']';
-  };
+  var result = undefined;
+  var error = null;
+  try {
+    // Use the evaluation id to identify this code when it shows up in stack traces.
+    // Turn off automatic display of errors for things like syntax errors.
 
-  return vm.runInContext(code, this.state, options);
+    var options = { filename: 'code', displayErrors: false };
+    options.toString = function() {
+      return 'code[' + evaluationId + ']';
+    };
+
+    result = vm.runInContext(code, this.state, options);
+  }
+  catch(e) {
+    error = e;
+  }
+
+  // Convert the result into a promise (if it isn't already one). Both sync and async results
+  // are handled in the same way.
+  var promise = this._createPromise(result, error);
+  return promise.then(function(result) {
+    // Append the code, since it successfully completed execution.
+    shell.appendCode(code);
+    return result;
+  });
 }
 
 // Evaluates as % or %% command (aka line or cell magic).
 Shell.prototype._evaluateCommand = function(text, evaluationId) {
+  var result = undefined;
+  var error = null;
+
   var commandInfo = this._parseCommand(text);
-  if (!commandInfo) {
-    return undefined;
+  if (commandInfo) {
+    try {
+      result = commandInfo.command(this, commandInfo.args, commandInfo.data, evaluationId);
+    }
+    catch(e) {
+      error = e;
+    }
   }
 
-  return commandInfo.command(this, commandInfo.args, commandInfo.data, evaluationId);
+  return this._createPromise(result, error);
+}
+
+Shell.prototype._createPromise = function(result, error) {
+  var promise = result;
+  if ((error === null) ||
+      (result === null) || (result === undefined) ||
+      (typeof result != 'object') ||
+      (typeof result.then != 'function')) {
+    var deferred = q.defer();
+    error ? deferred.reject(error) : deferred.resolve(result);
+
+    promise = deferred.promise;
+  }
+
+  return promise;
 }
 
 // Attempts to parse a % or %% command into a command function along with associated arguments

@@ -14,7 +14,6 @@
 // Represents a single evaluation within the kernel.
 //
 
-var Q = require('q');
 var streams = require('./streams');
 
 var _evaluationCounter = 0;
@@ -36,29 +35,8 @@ Evaluation.prototype.execute = function(text) {
   var stdout = streams.stdout(this._streamHandler);
   var stderr = streams.stderr(this._streamHandler);
 
-  var result = undefined;
-  var error = null;
-  try {
-    // Let the evaluator do its thing to produce a result
-    result = this._evaluator.evaluate(text, this.counter);
-  }
-  catch(e) {
-    error = e;
-  }
-
-  // Convert the result into a promise (if it isn't already one). Both sync and async results
-  // are handled in the same way.
-  var promise = result;
-  if ((error === null) ||
-      (result === null) || (result === undefined) ||
-      (typeof result != 'object') ||
-      (typeof result.then != 'function')) {
-    var deferred = Q.defer();
-    error ? deferred.reject(error) : deferred.resolve(result);
-
-    promise = deferred.promise;
-  }
-
+  // Let the evaluator do its thing to produce a result
+  var promise = this._evaluator.evaluate(text, this.counter);
   return promise.fin(function() {
     // Ensure that the streams are restored once the promise has been resolved or rejected.
     // This implies that the streams remain in captured state during async work if the evaluation
