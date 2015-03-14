@@ -63,10 +63,11 @@ div.navbar-fixed-top div.navbar-inner, div.navbar-static-top div.navbar-inner {
   padding-right: 0;
 }
 #notebook_name {
-  font-weight: 300;
+  font-weight: 700;
 }
 #checkpoint_status, #autosave_status {
   color: rgba(0,0,0,0.5);
+  font-size: smaller !important;
 }
 
 /* Hide some commands - cell toolbar, and interrupt kernel buttons */
@@ -86,7 +87,7 @@ body.notebook_app #header div.navbar-inner {
 body.notebook_app #site {
   background-color: #eee;
 }
-body.notebook_app .btn {
+body.notebook_app #menubar-container .btn {
   background: #fafafa;
   -webkit-box-shadow: none;
   box-shadow: none;
