@@ -108,7 +108,11 @@ function executeHandler(message) {
 }
 
 function completeHandler(message) {
-  console.dir(message);
+  var promise = _session.evaluator.complete(message.content.text, message.content.cursor_pos);
+  promise.then(function(result) {
+    var replyMessage = messages.completions(message, result.prefix, result.completions);
+    messages.write(replyMessage, _session.shell, _session.signer);
+  });
 }
 
 // Creates the message handlers associated with the kernel session.

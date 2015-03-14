@@ -17,6 +17,7 @@
 
 var nomnom = require('nomnom'),
     q = require('q'),
+    tern = require('tern'),
     vm = require('vm');
 
 var ijsrt = require('ijs.runtime');
@@ -70,6 +71,13 @@ function Shell(config) {
   this.commands = {};
   this.state = vm.createContext(createGlobals(this));
   this.code = '';
+
+  require('../../node_modules/tern/plugin/node.js');
+  var ternOptions = {
+    defs: [require('../../node_modules/tern/defs/ecma5.json')],
+    plugins: { node: {} }
+  };
+  this.ternServer = new tern.Server(ternOptions);
 }
 
 // Appends code to the shell's code buffer
@@ -99,6 +107,30 @@ Shell.prototype.createTrace = function(error) {
   }
 
   return trace;
+}
+
+// Attempts to find a list of matches at the specified position in the specified text block.
+// Returns a set of completions and the text being completed.
+Shell.prototype.complete = function(text, position) {
+  var codeBuffer = this.code + '\n' + text;
+  position += this.code.length + 1;
+
+  var query = { type: 'completions', file: 'code', end: position };
+  var file = { type: 'full', name: 'code', text: codeBuffer };
+
+  var deferred = q.defer();
+  this.ternServer.request({ query: query, files: [file] }, function(error, response) {
+    if (!error) {
+      var result = {
+        completions: response.completions,
+        prefix: codeBuffer.substr(response.start, response.end)
+      };
+
+      deferred.resolve(result);
+    }
+  });
+
+  return deferred.promise;
 }
 
 // Evalutes the user's input in context of the shell's state to produce an evaluation result.
