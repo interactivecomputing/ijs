@@ -40,6 +40,29 @@ function createGlobals(shell) {
   return globals;
 }
 
+// Converts a result/error tuple into a promise, if the result is not already a promise.
+function createPromise(result, error) {
+  // Create a pre-rejected promise for errors.
+  if (error) {
+    var deferred = q.defer();
+    deferred.reject(error);
+
+    return deferred.promise;
+  }
+
+  // Create a pre-resolved promise with the result when the result is not a promise.
+  if ((result === null) || (result === undefined) ||
+      (typeof result != 'object') ||
+      (typeof result.then != 'function')) {
+    var deferred = q.defer();
+    deferred.resolve(result);
+
+    return deferred.promise;
+  }
+
+  return result;
+}
+
 
 // The Shell object to manage configuration, shell functionality and session state.
 function Shell(config) {
@@ -113,7 +136,7 @@ Shell.prototype._evaluateCode = function(code, evaluationId) {
 
   // Convert the result into a promise (if it isn't already one). Both sync and async results
   // are handled in the same way.
-  var promise = this._createPromise(result, error);
+  var promise = createPromise(result, error);
   return promise.then(function(result) {
     // Append the code, since it successfully completed execution.
     shell.appendCode(code);
@@ -136,22 +159,7 @@ Shell.prototype._evaluateCommand = function(text, evaluationId) {
     }
   }
 
-  return this._createPromise(result, error);
-}
-
-Shell.prototype._createPromise = function(result, error) {
-  var promise = result;
-  if ((error === null) ||
-      (result === null) || (result === undefined) ||
-      (typeof result != 'object') ||
-      (typeof result.then != 'function')) {
-    var deferred = q.defer();
-    error ? deferred.reject(error) : deferred.resolve(result);
-
-    promise = deferred.promise;
-  }
-
-  return promise;
+  return createPromise(result, error);
 }
 
 // Attempts to parse a % or %% command into a command function along with associated arguments
