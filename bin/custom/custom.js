@@ -45,9 +45,14 @@ $(function() {
   IPython.config.cell_magic_highlight['magic_application/ld+json'] = {
     reg: [ /%%json/ ]
   };
+
+  // %%text cell support
   IPython.config.cell_magic_highlight['magic_text/plain'] = {
     reg: [ /%%text/ ]
   };
+
+  // %%script cell support
+  IPython.config.cell_magic_highlight.magic_javascript.reg = [ /^%%script/ ];
 
   var codeCellProto = IPython.CodeCell.prototype;
   var originalJSONConverter = codeCellProto.toJSON;
@@ -126,3 +131,69 @@ $(function() {
     return this.send_shell_message('complete_request', content, callbacks);
   }
 });
+
+// Add TOC functionality
+function setupOutline() {
+  var markup = '<select id="tocDropDown" style="float: right"><option>Outline</option></select>';
+  IPython.toolbar.element.append(markup);
+
+  var tocDropDown = $('#tocDropDown');
+  tocDropDown.change(function(e) {
+    var index = tocDropDown.val();
+    if (index.length === '') {
+      return false;
+    }
+
+    var scrollTop = IPython.notebook.get_cell(0).element.position().top -
+                    IPython.notebook.get_cell(parseInt(index)).element.position().top;
+    IPython.notebook.element.animate({ scrollTop: -scrollTop }, 250, 'easeInOutCubic');
+
+    tocDropDown.blur();
+    tocDropDown.find('option').get(0).selected = true;
+
+    return false;
+  });
+
+  function createOption(title, value, level) {
+    var prefix = level > 1 ? new Array(level + 1).join('&nbsp;&nbsp;') : '';
+    var text = prefix + IPython.utils.escape_html(title);
+
+    return '<option value="' + value + '">' + text + '</option>';
+  }
+
+  function updateOutline() {
+    var content = [];
+    content.push(createOption('Table of Contents', '', 0));
+
+    var cells = IPython.notebook.get_cells();
+    cells.forEach(function(c, i) {
+      if ((c.cell_type == 'heading') && (c.level <= 3)) {
+        var cell = $(c.element);
+        var header = cell.find('h' + c.level);
+
+        // Retrieve the title and strip off the trailing paragraph marker
+        var title = header.text();
+        title = title.substring(-1, title.length - 1);
+
+        if (title == 'Type Heading Here') {
+          // New cells have this placeholder text in them
+          return;
+        }
+
+        content.push(createOption(title, i, c.level));
+      }
+    });
+
+    var markup = content.join('');
+    tocDropDown.html(markup);
+  }
+
+  updateOutline();
+  $([IPython.events]).on('set_dirty.Notebook', function(event, data) {
+    updateOutline();
+  });
+  $([IPython.events]).on('command_mode.Cell', function(event, data) {
+    updateOutline();
+  });
+}
+setTimeout(setupOutline, 1000);
