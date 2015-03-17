@@ -86,6 +86,29 @@ scriptCommand.options = function(parser) {
 }
 
 
+// Implements the %inspect command
+// This command can be used to inspect a variable, or expression within the shell.
+function inspectCommand(shell, args, data, evaluationId) {
+  if (args.names) {
+    args.names.forEach(function(n) {
+      console.log(n + ':');
+      console.dir(shell.state[n]);
+      console.log();
+    });
+  }
+}
+inspectCommand.options = function(parser) {
+  return parser
+    .help('Allows inspecting variables')
+    .option('names', {
+      list: true,
+      position: 0,
+      required: true,
+      help: 'the variables to inspect'
+    });
+}
+
+
 // Initialize the shell with tne commands defined above, so they are available for use as
 // %% magics.
 function initialize(shell) {
@@ -93,6 +116,7 @@ function initialize(shell) {
   shell.registerCommand('text', textCommand);
   shell.registerCommand('json', jsonCommand);
   shell.registerCommand('script', scriptCommand);
+  shell.registerCommand('inspect', inspectCommand);
 }
 
 
