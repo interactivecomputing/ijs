@@ -1,4 +1,3 @@
 #!/bin/sh
 
-docker build -t nikhilk/ijs .
-
+docker build -t nikhilk/ijs --no-cache .
