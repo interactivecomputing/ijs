@@ -1,17 +1,19 @@
 {
   "name": "ijs",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "Interactive JavaScript kernel for IPython",
   "keywords": [
     "interactive",
     "javascript",
     "ijs",
     "ijavascript",
-    "node",
     "ipython",
     "kernel",
     "notebook",
-    "repl"
+    "repl",
+    "console",
+    "ide",
+    "editor"
   ],
   "author": {
     "author": "Nikhil Kothari",
