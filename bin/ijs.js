@@ -21,6 +21,9 @@ var childProcess = require('child_process'),
     path = require('path');
 
 var userPath = process.argv[2];
+if (userPath) {
+  userPath = path.join(process.cwd(), userPath);
+}
 if (!userPath || !fs.existsSync(userPath) || !fs.statSync(userPath).isDirectory()) {
   console.error('Usage: ijs <directory>');
   process.exit(1);
