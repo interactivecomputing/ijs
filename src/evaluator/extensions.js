@@ -26,7 +26,9 @@ function extensionCommand(shell, args, data, evaluationId) {
   var deferred = q.defer();
 
   var name = args.name;
-  var moduleName = 'ijs.extension.' + name;
+  var moduleName = 'ijs.ext.' + name;
+  var modulePath = args.path || moduleName;
+
   var npmOptions = {
     // where modules should get installed
     prefix: shell.config.extensionsPath,
@@ -40,13 +42,13 @@ function extensionCommand(shell, args, data, evaluationId) {
     unicode: false
   };
   npm.load(npmOptions, function() {
-    npm.commands.install([ moduleName ], function(error) {
+    npm.commands.install([ modulePath ], function(error) {
       if (error) {
         deferred.reject(error);
       }
       else {
         var extensionPath = path.join(shell.config.extensionsPath, 'node_modules', moduleName);
-        var extension = require(modulePath);
+        var extension = require(extensionPath);
 
         extension.initialize(shell, function(error, result) {
           if (error) {
@@ -70,6 +72,14 @@ extensionCommand.options = function(parser) {
       position: 0,
       required: true,
       help: 'the name of the extension to install'
+    })
+    .option('path', {
+      abbr: 'p',
+      full: 'path',
+      metavar: 'path',
+      type: 'string',
+      required: false,
+      help: 'the local path of the extension'
     });
 }
 
