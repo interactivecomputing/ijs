@@ -89,6 +89,11 @@ Shell.prototype.appendCode = function(code) {
   }
 }
 
+// Creates errors for the purposes of displaying just an error message, without any stack trace.
+Shell.prototype.createError = function() {
+  return error.create.apply(null, arguments);
+}
+
 // Creates traces for errors raised within the shell. It removes the Shell and underlying
 // kernel-specific stack frames to provide a user code-only trace.
 Shell.prototype.createTrace = function(error) {
