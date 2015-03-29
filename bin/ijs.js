@@ -68,6 +68,8 @@ var args = [
   'notebook',
   '--KernelManager.kernel_cmd=[' + kernelArgs + ']',
   '--NotebookApp.extra_static_paths=[' + staticPaths + ']',
+  '--Session.key=""',
+  '--Session.keyfile=""',
   '--notebook-dir=' + notebooksPath,
   '--ip="*"',
   '--port=9999',

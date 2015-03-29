@@ -186,14 +186,14 @@ Shell.prototype._evaluateCommand = function(text, evaluationId) {
   var result = undefined;
   var error = null;
 
-  var commandInfo = this._parseCommand(text);
-  if (commandInfo) {
-    try {
-      result = commandInfo.command(this, commandInfo.args, commandInfo.data, evaluationId);
+  try {
+    var commandInfo = this._parseCommand(text);
+    if (commandInfo) {
+        result = commandInfo.command(this, commandInfo.args, commandInfo.data, evaluationId);
     }
-    catch(e) {
-      error = e;
-    }
+  }
+  catch(e) {
+    error = e;
   }
 
   return createPromise(result, error);
