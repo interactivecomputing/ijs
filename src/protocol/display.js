@@ -63,6 +63,10 @@ function createDisplayData(value) {
         (value.constructor == Array)) {
       displayData['application/json'] = value;
     }
+    else if (value.constructor == Buffer) {
+      var mime = value.mime || 'application/octet-stream';
+      displayData[mime] = value.toString('base64');
+    }
     else {
       displayData['text/plain'] = value.toString();
     }
