@@ -76,24 +76,29 @@ function executeHandler(message) {
   .fail(function(error) {
     var traceback = null;
 
-    // Send a trace for the error
-    var errorOutput;
-    if (error.trace === false) {
-      // If an error has been marked as trace suppress, just use the message. This is to
-      // communicate error in user's input as opposed to error raised during execution.
-      errorOutput = error.message;
+    if (error) {
+      // Send a trace for the error
+      var errorOutput;
+      if (error.trace === false) {
+        // If an error has been marked as trace suppress, just use the message. This is to
+        // communicate error in user's input as opposed to error raised during execution.
+        errorOutput = error.message;
+      }
+      else {
+        var trace = _session.evaluator.createTrace(error);
+        errorOutput = trace.join('\n');
+
+        // The traceback field of the reply should not contain the error message,
+        // just the stack trace.
+        traceback = trace.splice(1).map(function(s) { return s.trim().substr(3); });
+      }
+
+      var errorMessage = messages.stream(message, 'stderr', errorOutput);
+      messages.write(errorMessage, _session.io, _session.signer);
     }
     else {
-      var trace = _session.evaluator.createTrace(error);
-      errorOutput = trace.join('\n');
-
-      // The traceback field of the reply should not contain the error message,
-      // just the stack trace.
-      traceback = trace.splice(1).map(function(s) { return s.trim().substr(3); });
+      error = new Error('Error');
     }
-
-    var errorMessage = messages.stream(message, 'stderr', errorOutput);
-    messages.write(errorMessage, _session.io, _session.signer);
 
     // Send the execute reply indicating error
     var replyMessage = messages.error(message, currentEvaluation.counter, error, traceback);

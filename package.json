@@ -1,6 +1,6 @@
 {
   "name": "ijs",
-  "version": "0.2.4",
+  "version": "0.2.5",
   "description": "Interactive JavaScript kernel for IPython",
   "keywords": [
     "interactive",
