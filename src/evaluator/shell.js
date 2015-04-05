@@ -189,7 +189,7 @@ Shell.prototype._evaluateCommand = function(text, evaluationId) {
   try {
     var commandInfo = this._parseCommand(text);
     if (commandInfo) {
-        result = commandInfo.command(this, commandInfo.args, commandInfo.data, evaluationId);
+      result = commandInfo.command(this, commandInfo.args, commandInfo.data, evaluationId);
     }
   }
   catch(e) {
