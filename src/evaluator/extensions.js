@@ -14,10 +14,9 @@
 // This module contains functionality associated with loading shell extensions.
 //
 
-var npm = require('npm'),
-    path = require('path'),
+var path = require('path'),
     q = require('q');
-var streams = require('../utils/streams');
+var installer = require('../utils/installer');
 
 var error = require('./error');
 
@@ -30,48 +29,30 @@ function extensionCommand(shell, args, data, evaluationId) {
   var moduleName = 'ijs.ext.' + name;
   var modulePath = args.path || moduleName;
 
-  var stdout = streams.stdout(function() {});
+  installer.install(modulePath, shell.config.extensionsPath, /* quiet */ true, function(error) {
+    if (error) {
+      deferred.reject(shell.createError('Unable to install extension module "%s"', moduleName));
+    }
+    else {
+      var extensionPath = path.join(shell.config.extensionsPath, 'node_modules', moduleName);
+      var extension = require(extensionPath);
 
-  var npmOptions = {
-    // where modules should get installed
-    prefix: shell.config.extensionsPath,
-
-    // turn off npm spew, as well as its progress indicator
-    loglevel: 'silent',
-    spin: false,
-
-    // make any other output (the list of installed modules) usable within the shell
-    color: false,
-    unicode: false
-  };
-  npm.load(npmOptions, function() {
-    npm.commands.install([ modulePath ], function(error) {
-      stdout.restore();
-
-      if (error) {
-        deferred.reject(shell.createError('Unable to install extension module "%s"', moduleName));
+      try {
+        extension.initialize(shell, function(error, result) {
+          if (error) {
+            deferred.reject(shell.createError('Error initializing extension'));
+          }
+          else {
+            shell.loadedExtensions[name] = true;
+            deferred.resolve(result);
+          }
+        });
       }
-      else {
-        var extensionPath = path.join(shell.config.extensionsPath, 'node_modules', moduleName);
-        var extension = require(extensionPath);
-
-        try {
-          extension.initialize(shell, function(error, result) {
-            if (error) {
-              deferred.reject(shell.createError('Error initializing extension'));
-            }
-            else {
-              shell.loadedExtensions[name] = true;
-              deferred.resolve(result);
-            }
-          });
-        }
-        catch(e) {
-          deferred.reject(shell.createError('Error initializing extension'));
-        }
+      catch(e) {
+        deferred.reject(shell.createError('Error initializing extension'));
       }
-    });
-  });
+    }
+  })
 
   return deferred.promise;
 }
