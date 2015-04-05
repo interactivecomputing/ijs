@@ -69,6 +69,7 @@ function createPromise(result, error) {
 function Shell(config) {
   this.config = config;
   this.commands = {};
+  this.runtime = ijsrt;
   this.state = vm.createContext(createGlobals(this));
   this.code = '';
 
