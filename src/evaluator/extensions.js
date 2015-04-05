@@ -17,6 +17,7 @@
 var npm = require('npm'),
     path = require('path'),
     q = require('q');
+var streams = require('../utils/streams');
 
 var error = require('./error');
 
@@ -28,6 +29,8 @@ function extensionCommand(shell, args, data, evaluationId) {
   var name = args.name;
   var moduleName = 'ijs.ext.' + name;
   var modulePath = args.path || moduleName;
+
+  var stdout = streams.stdout(function() {});
 
   var npmOptions = {
     // where modules should get installed
@@ -43,22 +46,29 @@ function extensionCommand(shell, args, data, evaluationId) {
   };
   npm.load(npmOptions, function() {
     npm.commands.install([ modulePath ], function(error) {
+      stdout.restore();
+
       if (error) {
-        deferred.reject(error);
+        deferred.reject(shell.createError('Unable to install extension module "%s"', moduleName));
       }
       else {
         var extensionPath = path.join(shell.config.extensionsPath, 'node_modules', moduleName);
         var extension = require(extensionPath);
 
-        extension.initialize(shell, function(error, result) {
-          if (error) {
-            deferred.reject(error);
-          }
-          else {
-            shell.loadedExtensions[name] = true;
-            deferred.resolve(result);
-          }
-        });
+        try {
+          extension.initialize(shell, function(error, result) {
+            if (error) {
+              deferred.reject(shell.createError('Error initializing extension'));
+            }
+            else {
+              shell.loadedExtensions[name] = true;
+              deferred.resolve(result);
+            }
+          });
+        }
+        catch(e) {
+          deferred.reject(shell.createError('Error initializing extension'));
+        }
       }
     });
   });

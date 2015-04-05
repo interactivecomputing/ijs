@@ -14,7 +14,7 @@
 // Represents a single evaluation within the kernel.
 //
 
-var streams = require('./streams');
+var streams = require('../utils/streams');
 
 var _evaluationCounter = 0;
 
