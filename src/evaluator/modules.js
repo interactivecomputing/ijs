@@ -46,7 +46,7 @@ var _knownModules = {
 function moduleCommand(shell, args, data, evaluationId) {
   var deferred = q.defer();
 
-  installer.install(args.name, shell.config.modulesPath, /* quiet */ false, function(error) {
+  installer.install(args.name, shell.config.userPath, /* quiet */ false, function(error) {
     if (error) {
       deferred.reject(shell.createError('Could not install module'));
     }
@@ -98,7 +98,7 @@ function customRequire(shell, name) {
   else if (shell.installedModules[name]) {
     // Directly load up a specified custom module from where it would have been installed
     // when using the %module command.
-    var modulePath = path.join(shell.config.modulesPath, 'node_modules', name);
+    var modulePath = path.join(shell.config.userPath, 'node_modules', name);
     module = require(modulePath);
   }
 

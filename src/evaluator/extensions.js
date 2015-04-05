@@ -29,12 +29,12 @@ function extensionCommand(shell, args, data, evaluationId) {
   var moduleName = 'ijs.ext.' + name;
   var modulePath = args.path || moduleName;
 
-  installer.install(modulePath, shell.config.extensionsPath, /* quiet */ true, function(error) {
+  installer.install(modulePath, shell.config.userPath, /* quiet */ true, function(error) {
     if (error) {
       deferred.reject(shell.createError('Unable to install extension module "%s"', moduleName));
     }
     else {
-      var extensionPath = path.join(shell.config.extensionsPath, 'node_modules', moduleName);
+      var extensionPath = path.join(shell.config.userPath, 'node_modules', moduleName);
       var extension = require(extensionPath);
 
       try {

@@ -41,30 +41,16 @@ function main() {
             process.exit(0);
           }
         })
-        .option('modulesPath', {
-          abbr: 'm',
-          full: 'modules',
+        .option('userPath', {
+          abbr: 'u',
+          full: 'userPath',
           metavar: 'path',
           type: 'string',
           required: true,
           help: 'path that will contain installed node modules',
-          callback: function(modulesPath) {
-            if (!fs.existsSync(modulesPath) || !fs.statSync(modulesPath).isDirectory()) {
-              return 'expected an existing directory for the modules option';
-            }
-            return null;
-          }
-        })
-        .option('extensionsPath', {
-          abbr: 'e',
-          full: 'extensions',
-          metavar: 'path',
-          type: 'string',
-          required: true,
-          help: 'path that will contain installed extensions',
-          callback: function(extensionsPath) {
-            if (!fs.existsSync(extensionsPath) || !fs.statSync(extensionsPath).isDirectory()) {
-              return 'expected an existing directory for the extensions option';
+          callback: function(userPath) {
+            if (!fs.existsSync(userPath) || !fs.statSync(userPath).isDirectory()) {
+              return 'expected an existing directory for the userPath option';
             }
             return null;
           }
@@ -78,8 +64,7 @@ function main() {
 
   if (options) {
     var shellConfig = {
-      modulesPath: options.modulesPath,
-      extensionsPath: options.extensionsPath
+      userPath: options.userPath
     };
 
     var connectionConfig = JSON.parse(fs.readFileSync(options.connectionFile,
