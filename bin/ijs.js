@@ -29,6 +29,8 @@ if (!userPath || !fs.existsSync(userPath) || !fs.statSync(userPath).isDirectory(
   process.exit(1);
 }
 
+var debug = process.argv[3] == 'debug';
+
 var notebooksPath = path.join(userPath, 'notebooks');
 if (!fs.existsSync(notebooksPath)) {
   fs.mkdirSync(notebooksPath);
@@ -39,7 +41,7 @@ if (!fs.existsSync(contentPath)) {
   fs.mkdirSync(contentPath);
 }
 
-var executable = process.argv[3] == 'debug' ? 'node-debug' : 'node';
+var executable = debug ? 'node-debug' : 'node';
 var kernelPath = path.join(__dirname, '..', 'src', 'index.js');
 var kernelArgs = [
   executable,
@@ -67,6 +69,9 @@ var args = [
   '--no-script',
   '--quiet'
 ];
+if (debug) {
+  args.push('--NotebookApp.log_level=DEBUG');
+}
 var options = {
   stdio: 'inherit'
 };
