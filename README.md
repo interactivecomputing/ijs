@@ -1,7 +1,7 @@
-# ijs
+# ijs - Interactive JavaScript
 
-An environment for interactive JavaScript authoring and execution built
-on top of the IPython notebook metaphor.
+An environment for interactive authoring and executing JavaScript code using a
+notebook metaphor, built on top of IPython.
 
 An ijs notebook is powered by a javascript kernel written in node.js (and
 replaces the standard python kernel). A kernel runs behind the scenes and
