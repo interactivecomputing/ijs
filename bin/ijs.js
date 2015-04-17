@@ -66,11 +66,13 @@ var args = [
   '--port=9999',
   '--matplotlib=inline',
   '--no-mathjax',
-  '--no-script',
-  '--quiet'
+  '--no-script'
 ];
 if (debug) {
   args.push('--NotebookApp.log_level=DEBUG');
+}
+else {
+  args.push('--quiet');
 }
 var options = {
   stdio: 'inherit'
