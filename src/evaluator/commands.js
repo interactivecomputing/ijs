@@ -15,13 +15,12 @@
 //
 
 var util = require('util');
-var ijsrt = require('ijs.runtime');
 
 
 // Implements the %%html command.
 // This command simply converts the specified text into an object that is rendered as HTML.
 function htmlCommand(shell, args, data, evaluationId) {
-  return ijsrt.data.html(data);
+  return shell.runtime.data.html(data);
 }
 htmlCommand.options = function(parser) {
   return parser.help('Creates and renders HTML markup.');
@@ -79,7 +78,7 @@ jsonCommand.options = function(parser) {
 // Implements the %%script command.
 // This command can be used to execute script on the client, instead of on the server.
 function scriptCommand(shell, args, data, evaluationId) {
-  return ijsrt.data.script(data);
+  return shell.runtime.data.script(data);
 }
 scriptCommand.options = function(parser) {
   return parser.help('Creates a script object that is executed in the browser.');

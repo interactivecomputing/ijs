@@ -61,7 +61,7 @@ function createDisplayData(value) {
   if (useFallbacks) {
     if ((value.constructor == Object) ||
         (value.constructor == Array)) {
-      displayData['application/json'] = value;
+      displayData['application/json'] = JSON.stringify(value);
     }
     else if (value.constructor == Buffer) {
       var mime = value.mime || 'application/octet-stream';
