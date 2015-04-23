@@ -31,8 +31,9 @@ The tool will create a `notebooks` directory within the specified working
 directory.
 
 Note: If you don't already have node.js and IPython installed, you'll need
-to do so first. Unfortunately setting these up can be a bit involved. Here
-are the instructions to do so, if you don't already have them.
+to do so first. Unfortunately setting these up can be a bit involved. This page
+might help: http://ipython.org/install.html ... as of right now ijs requires
+IPython v2.4.1. Support for 3.x is coming.
 
 ### Docker
 This avoids the need to go through the steps of getting a local setup. As
