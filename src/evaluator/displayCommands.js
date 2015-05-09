@@ -10,40 +10,38 @@
 // either express or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 //
-// commands.js
+// displayCommands.js
 // Implements various commands (aka line and cell magics) available within the shell.
 //
 
 var util = require('util');
 
 
-// Implements the %inspect command
-// This command can be used to inspect a variable, or expression within the shell.
-function inspectCommand(shell, args, data, evaluationId) {
-  if (args.names) {
-    args.names.forEach(function(n) {
-      console.log(n + ':');
-      console.dir(shell.state[n]);
-      console.log();
-    });
-  }
+// Implements the %%html command.
+// This command simply converts the specified text into an object that is rendered as HTML.
+function htmlCommand(shell, args, data, evaluationId) {
+  return shell.runtime.data.html(data);
 }
-inspectCommand.options = function(parser) {
-  return parser
-    .help('Allows inspecting variables')
-    .option('names', {
-      list: true,
-      position: 0,
-      required: true,
-      help: 'the variables to inspect'
-    });
+htmlCommand.options = function(parser) {
+  return parser.help('Creates and renders HTML markup.');
+}
+
+
+// Implements the %%script command.
+// This command can be used to execute script on the client, instead of on the server.
+function scriptCommand(shell, args, data, evaluationId) {
+  return shell.runtime.data.script(data);
+}
+scriptCommand.options = function(parser) {
+  return parser.help('Creates a script object that is executed in the browser.');
 }
 
 
 // Initialize the shell with tne commands defined above, so they are available for use as
 // %% magics.
 function initialize(shell) {
-  shell.registerCommand('inspect', inspectCommand);
+  shell.registerCommand('html', htmlCommand);
+  shell.registerCommand('script', scriptCommand);
 }
 
 

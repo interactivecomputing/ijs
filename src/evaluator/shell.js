@@ -22,8 +22,7 @@ var nomnom = require('nomnom'),
 
 var ijsrt = require('ijs.runtime');
 
-var commands = require('./commands'),
-    error = require('./error'),
+var error = require('./error'),
     extensions = require('./extensions'),
     modules = require('./modules');
 
@@ -262,7 +261,10 @@ function createShell(config, callback) {
 
   modules.initialize(shell);
   extensions.initialize(shell);
-  commands.initialize(shell);
+
+  require('./commands').initialize(shell);
+  require('./displayCommands').initialize(shell);
+  require('./dataCommands').initialize(shell);
 
   process.nextTick(function() {
     callback(shell);
