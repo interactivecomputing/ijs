@@ -32,6 +32,12 @@ function createGlobals(shell) {
   var globals = {
     Buffer: Buffer,
     console: console,
+    clearImmediate: clearImmediate,
+    clearInterval: clearInterval,
+    clearTimeout: clearTimeout,
+    setImmediate: setImmediate,
+    setInterval: setInterval,
+    setTimeout: setTimeout,
     _: ijsrt
   };
 
