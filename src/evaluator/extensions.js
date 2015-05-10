@@ -14,16 +14,13 @@
 // This module contains functionality associated with loading shell extensions.
 //
 
-var path = require('path'),
-    q = require('q');
+var path = require('path');
 var installer = require('../utils/installer');
-
-var error = require('./error');
 
 // Implements the %extension command, that can be used to install a specific named
 // module as a shell extension, using npm.
 function extensionCommand(shell, args, data, evaluationId) {
-  var deferred = q.defer();
+  var deferred = shell.runtime.q.defer();
 
   var name = args.name;
   var moduleName = 'ijs.ext.' + name;

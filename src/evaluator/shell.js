@@ -16,7 +16,6 @@
 //
 
 var nomnom = require('nomnom'),
-    q = require('q'),
     tern = require('tern'),
     vm = require('vm');
 
@@ -50,7 +49,7 @@ function createGlobals(shell) {
 function createPromise(result, error) {
   // Create a pre-rejected promise for errors.
   if (error) {
-    var deferred = q.defer();
+    var deferred = ijsrt.q.defer();
     deferred.reject(error);
 
     return deferred.promise;
@@ -60,7 +59,7 @@ function createPromise(result, error) {
   if ((result === null) || (result === undefined) ||
       (typeof result != 'object') ||
       (typeof result.then != 'function')) {
-    var deferred = q.defer();
+    var deferred = ijsrt.q.defer();
     deferred.resolve(result);
 
     return deferred.promise;
@@ -129,7 +128,7 @@ Shell.prototype.complete = function(text, position) {
   var query = { type: 'completions', file: 'code', end: position };
   var file = { type: 'full', name: 'code', text: codeBuffer };
 
-  var deferred = q.defer();
+  var deferred = ijsrt.q.defer();
   this.ternServer.request({ query: query, files: [file] }, function(error, response) {
     if (!error) {
       var result = {

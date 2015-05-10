@@ -15,11 +15,8 @@
 // node modules within the shell.
 //
 
-var path = require('path'),
-    q = require('q');
+var path = require('path');
 var installer = require('../utils/installer');
-
-var error = require('./error');
 
 // List of built-in and custom modules available from the shell
 // without needing to first install.
@@ -44,7 +41,7 @@ var _knownModules = {
 // module, using npm. The module gets installed into 'node_modules' within the path
 // specified in configuration.
 function moduleCommand(shell, args, data, evaluationId) {
-  var deferred = q.defer();
+  var deferred = shell.runtime.q.defer();
 
   installer.install(args.name, shell.config.userPath, /* quiet */ false, function(error) {
     if (error) {
@@ -106,8 +103,8 @@ function customRequire(shell, name) {
     shell.requiredModules[name] = module;
   }
   else {
-    throw error.create('Unknown module "%s". Make sure it has been installed via %module first.',
-                       name);
+    throw shell.createError('Unknown module "%s". Make sure it has been installed via %module.',
+                            name);
   }
 
   return module;
