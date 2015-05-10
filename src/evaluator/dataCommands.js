@@ -16,21 +16,35 @@
 
 var util = require('util');
 
+function dataCommand(shell, args, data, evaluationId, dataProcessor) {
+  var deferred = shell.runtime.q.defer();
+  if (args.source) {
+    shell.runtime.request.get(args.source, function(e, response, body) {
+      if (e || (response.statusCode != 200)) {
+        deferred.reject(e || shell.createError('Failed request'));
+      }
+      else {
+        deferred.resolve(dataProcessor(response.body));
+      }
+    });
+  }
+  else {
+    deferred.resolve(dataProcessor(data));
+  }
 
-// Implements the %%text command.
-// This command can be used to initialize a string variable containing a span of literal text.
-// The text does not have to be specified as a string, i.e. quoted and escaped.
-function textCommand(shell, args, data, evaluationId) {
-  // Declare a specific named value (or update an existing declaration) with the data
-  // associated with the command.
-  shell.state[args.name] = data;
+  return deferred.promise.then(function(data) {
+    shell.state[args.name] = data;
 
-  // Append a variable declaration for the name we just set to a string placeholder.
-  shell.appendCode(util.format('var %s = "";', args.name));
+    // Append a variable declaration for the name we just set to the same json data.
+    shell.appendCode(util.format('var %s = %s;', args.name, data));
+
+    return args.show ? data : undefined;
+  });
 }
-textCommand.options = function(parser) {
+
+function dataCommandParser(parser, help) {
   return parser
-    .help('Creates a string variable from the specified text.')
+    .help(help)
     .option('name', {
       abbr: 'n',
       full: 'name',
@@ -38,7 +52,32 @@ textCommand.options = function(parser) {
       type: 'string',
       required: true,
       help: 'the variable that will be assigned'
+    })
+    .option('source', {
+      abbr: 's',
+      full: 'src',
+      metavar: 'url',
+      type: 'string',
+      help: 'the URL to request'
+    })
+    .option('show', {
+      flag: true,
+      default: false,
+      help: 'whether the data should be displayed as well'
     });
+}
+
+
+// Implements the %%text command.
+// This command can be used to initialize a string variable containing a span of literal text.
+// The text does not have to be specified as a string, i.e. quoted and escaped.
+function textCommand(shell, args, data, evaluationId) {
+  return dataCommand(shell, args, data, evaluationId, function(value) {
+    return value;
+  });
+}
+textCommand.options = function(parser) {
+  return dataCommandParser(parser, 'Creates a string variable from the specified text.');
 }
 
 
@@ -46,22 +85,12 @@ textCommand.options = function(parser) {
 // This command can be used to initialize a variable containing a plain old javascript object
 // parsed from JSON text.
 function jsonCommand(shell, args, data, evaluationId) {
-  shell.state[args.name] = JSON.parse(data);
-
-  // Append a variable declaration for the name we just set to the same json data.
-  shell.appendCode(util.format('var %s = %s;', args.name, data));
+  return dataCommand(shell, args, data, evaluationId, function(value) {
+    return JSON.parse(value);
+  });
 }
 jsonCommand.options = function(parser) {
-  return parser
-    .help('Creates an object from the specified JSON text.')
-    .option('name', {
-      abbr: 'n',
-      full: 'name',
-      metavar: 'variable',
-      type: 'string',
-      required: true,
-      help: 'the variable that will be assigned'
-    });
+  return dataCommandParser(parser, 'Creates an object variable from the specified JSON text.');
 }
 
 
