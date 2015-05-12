@@ -23,7 +23,8 @@ var ijsrt = require('ijs.runtime');
 
 var error = require('./error'),
     extensions = require('./extensions'),
-    modules = require('./modules');
+    modules = require('./modules'),
+    server = require('./server');
 
 
 // Creates the global objects variables that serves as the initial state managed by the shell.
@@ -76,6 +77,7 @@ function Shell(config) {
   this.runtime = ijsrt;
   this.state = vm.createContext(createGlobals(this));
   this.code = '';
+  this.server = server;
 
   require('../../node_modules/tern/plugin/node.js');
   var ternOptions = {
