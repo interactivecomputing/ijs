@@ -22,11 +22,16 @@ var util = require('util');
 function serverCommand(shell, args, data, evaluationId) {
   var command = args[0];
 
-  if (command == 'start') {
-    shell.server.start(args.port)
+  try {
+    if (command == 'start') {
+      shell.server.start(args.port)
+    }
+    else if (command == 'stop') {
+      shell.server.stop();
+    }
   }
-  else if (command == 'stop') {
-    shell.server.stop();
+  catch (e) {
+    throw shell.createError(e.message);
   }
 }
 serverCommand.options = function(parser) {

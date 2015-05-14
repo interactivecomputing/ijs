@@ -15,21 +15,46 @@
 // code within the shell accessible over HTTP.
 //
 
+var http = require('http');
+
+
 function Server() {
   this._port = 0;
+  this._server = null;
 }
 
 Server.prototype.running = function() {
-  // TOOD: Implement this
+  return this._server != null;
 }
 
 Server.prototype.start = function(port) {
-  // TODO: Implement this
+  if (this._server) {
+    if (this._port == port) {
+      return;
+    }
+
+    throw new Error('Server is already running on a different port');
+  }
+
+  var server = http.createServer(this._handleRequest.bind(this));
+  server.listen(port, '127.0.0.1');
+
+  this._server = server;
+  this._port = port;
 }
 
 Server.prototype.stop = function() {
-  // TODO: Implement this
+  if (this._server) {
+    var server = this._server;
+    this._server = null;
+
+    server.close();
+  }
 }
 
+Server.prototype._handleRequest = function(request, response) {
+  response.writeHead(200, { 'Content-Type': 'text/plain' });
+  response.end('IJavaScript Server - Hello World!');
+}
 
 module.exports = new Server();
