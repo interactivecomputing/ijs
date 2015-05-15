@@ -272,6 +272,7 @@ function createShell(config, callback) {
   require('./commands').initialize(shell);
   require('./displayCommands').initialize(shell);
   require('./dataCommands').initialize(shell);
+  require('./serverCommands').initialize(shell);
 
   process.nextTick(function() {
     callback(shell);
