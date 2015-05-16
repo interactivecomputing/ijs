@@ -15,12 +15,14 @@
 // code within the shell accessible over HTTP.
 //
 
-var http = require('http');
+var express = require('express'),
+    http = require('http');
 
 
 function Server() {
   this._port = 0;
   this._server = null;
+  this._app = null;
 }
 
 Server.prototype.running = function() {
@@ -36,15 +38,22 @@ Server.prototype.start = function(port) {
     throw new Error('Server is already running on a different port');
   }
 
-  var server = http.createServer(this._handleRequest.bind(this));
+  var app = express();
+  app.get('/', this._handleRequest.bind(this));
+
+  var server = http.createServer(app);
   server.listen(port, '127.0.0.1');
 
+  this._app = app;
   this._server = server;
   this._port = port;
 }
 
 Server.prototype.stop = function() {
   if (this._server) {
+    this._app = null;
+    this._port = 0;
+
     var server = this._server;
     this._server = null;
 

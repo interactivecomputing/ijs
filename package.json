@@ -28,6 +28,7 @@
     "node": "0.10.x"
   },
   "dependencies": {
+    "express": "^4.12.3",
     "ijs.runtime": "^0.2.0",
     "node-uuid": "^1.4.2",
     "nomnom": "^1.8.1",
