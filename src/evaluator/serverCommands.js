@@ -50,10 +50,69 @@ serverCommand.options = function(parser) {
   return parser;
 }
 
+// Implements the %%server.static command
+// This command can be used to add or remove static content served by the server.
+function staticCommand(shell, args, data, evaluationId) {
+  if (args['0'] == 'add') {
+    if (args.data) {
+      data = shell.state[args.data];
+      if (!data) {
+        throw shell.createError('The specified variable "%s" was not found.', args.data);
+      }
+    }
+
+    if (!data) {
+      throw shell.createError('No data specified was specified for the content to add.');
+    }
+
+    var url = shell.server.addContent(args.name, data, args.mime);
+    var markup = util.format('<a href="%s" target="_blank">%s</a>', url, args.name);
+
+    return shell.runtime.data.html(markup);
+  }
+  else {
+    shell.server.removeContent(args.name);
+    return undefined;
+  }
+}
+staticCommand.options = function(parser) {
+  parser.option('name', {
+          abbr: 'n',
+          full: 'name',
+          metavar: 'id',
+          type: 'string',
+          required: true,
+          help: 'The id to use to create a URL to the content'
+        })
+  parser.command('add')
+        .help('Adds static content to the server')
+        .option('mime', {
+          abbr: 'm',
+          full: 'mime',
+          metavar: 'type',
+          type: 'string',
+          required: true,
+          help: 'The mime type to associate with the content'
+        })
+        .option('data', {
+          abbr: 'd',
+          full: 'data',
+          metavar: 'variable',
+          type: 'string',
+          help: 'The variable containing the content'
+        });
+  parser.command('remove')
+        .help('Removes static content to the server');
+
+  return parser;
+}
+
+
 // Initialize the shell with tne commands defined above, so they are available for use as
 // %% magics.
 function initialize(shell) {
   shell.registerCommand('server', serverCommand);
+  shell.registerCommand('server.static', staticCommand);
 }
 
 

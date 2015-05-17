@@ -16,13 +16,19 @@
 //
 
 var express = require('express'),
-    http = require('http');
+    http = require('http'),
+    util = require('util');
 
 
 function Server() {
   this._port = 0;
   this._server = null;
   this._app = null;
+  this._content = {};
+}
+
+Server.prototype.port = function() {
+  return this._port;
 }
 
 Server.prototype.running = function() {
@@ -39,7 +45,7 @@ Server.prototype.start = function(port) {
   }
 
   var app = express();
-  app.get('/', this._handleRequest.bind(this));
+  app.get('/static/:id', this._staticContentHandler.bind(this));
 
   var server = http.createServer(app);
   server.listen(port, '127.0.0.1');
@@ -61,9 +67,36 @@ Server.prototype.stop = function() {
   }
 }
 
-Server.prototype._handleRequest = function(request, response) {
-  response.writeHead(200, { 'Content-Type': 'text/plain' });
-  response.end('IJavaScript Server - Hello World!');
+Server.prototype.addContent = function(id, data, mime) {
+  this._content[id] = {
+    data: data,
+    mime: mime
+  }
+
+  return util.format('http://localhost:%d/static/%s', this._port, id);
+}
+
+Server.prototype.removeContent = function(id) {
+  delete this._content[id];
+}
+
+Server.prototype._staticContentHandler = function(request, response) {
+  var content = this._content[request.params.id];
+  if (!content) {
+    response.status(404).end();
+    return;
+  }
+
+  response.type(content.mime);
+
+  if (content.mime == 'application/json') {
+    response.json(content.data);
+  }
+  else {
+    response.send(content.data);
+  }
+
+  response.end();
 }
 
 module.exports = new Server();
