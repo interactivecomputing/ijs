@@ -29,6 +29,7 @@ function addMessage(message) {
     return;
   }
 
+  message.content.code = text;
   _messages.push(message);
 
   // If there is no message already being processed, go ahead and process this message
@@ -50,7 +51,7 @@ function processMessage(message) {
   }
 
   var currentEvaluation = evaluation.create(_session.evaluator, outputHandler);
-  var result = currentEvaluation.execute(text);
+  var result = currentEvaluation.execute(message.content.code);
 
   result.then(function(value) {
     // Success ... send the result as display data if there was a result (i.e. don't send back
@@ -134,6 +135,7 @@ function processNextMessage(lastMessage) {
 function createQueue(session) {
   _session = session;
   _messages = [];
+  _idle = true;
 
   return {
     add: addMessage
